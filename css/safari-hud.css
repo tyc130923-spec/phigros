@@ -1,0 +1,37 @@
+
+/* Keep bottom UI within Safari's visible area, including browser chrome.
+   The export document receives its own fixed box from the same viewport code. */
+#loadingView,body #gameView.view{
+  position:fixed;inset:auto;
+  left:var(--phi-visible-x,0px);top:var(--phi-visible-y,0px);
+  width:var(--phi-visible-w,100vw);height:var(--phi-visible-h,100vh);
+  min-height:0;max-height:none;
+}
+#gameView .gameBottom{
+  overflow:visible;visibility:visible;
+}
+body:not(.pjskModeActive) #gameView .gameBottom{bottom:max(calc(var(--ref-y)*16),var(--phi-safe-area-bottom,env(safe-area-inset-bottom,0px)))}
+#gameView:not(.phiStageIntro):not(.phiStageOutro) .gameBottom{translate:0 0}
+#gameView .difficultyCaption{flex-shrink:0;white-space:nowrap}
+#loadingView .loadingTip{bottom:max(3.8%,calc(env(safe-area-inset-bottom,0px) + 6px))}
+
+/* A passing white strip reverses the text beneath it. The existing font and
+   logical dimensions are retained; this is a continuous loading cycle.
+   Reference behavior: PhiGameRevive/phigros-html5 loadingChartScreen/style.css. */
+#loadingView .loadingStatus{
+  right:max(5.1%,env(safe-area-inset-right,0px));
+  bottom:max(4%,calc(env(safe-area-inset-bottom,0px) + 6px));
+  background:transparent;color:#fff;isolation:isolate;overflow:hidden;z-index:2;
+}
+#loadingView .loadingStatusFill{position:absolute;inset:0;background:#fff;z-index:0;pointer-events:none;transform:translateX(-100%)}
+#loadingView .loadingStatusText{position:relative;z-index:1;color:#fff;mix-blend-mode:difference;white-space:nowrap}
+#loadingView:not(.hidden) .loadingStatusFill{animation:phi70LoadingSweep 1s ease-in-out infinite!important;will-change:transform}
+@keyframes phi70LoadingSweep{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+@supports not (mix-blend-mode:difference){
+  #loadingView:not(.hidden) .loadingStatusText{animation:phi70LoadingInk 1s ease-in-out infinite!important}
+}
+@keyframes phi70LoadingInk{0%,100%{color:#fff}50%{color:#111}}
+@media(prefers-reduced-motion:reduce){
+  #loadingView:not(.hidden) .loadingStatusFill,#loadingView:not(.hidden) .loadingStatusText{animation-duration:1.6s!important;animation-delay:0s!important}
+}
+

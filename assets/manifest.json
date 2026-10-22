@@ -1,0 +1,1145 @@
+{
+  "format": "phi-sekai-static-assets-v1",
+  "sourceSha256": "e6f5da70bb89b964cd0362b0b14b4d2f71722e2bb0c730d31422103e841b1f1e",
+  "sourceBytes": 104488405,
+  "entries": [
+    {
+      "id": "ch9_0_music",
+      "file": "assets/audio/ch9_0_music.ogg",
+      "offset": 0,
+      "bytes": 1922807,
+      "sha256": "79c7599de8be06aeab13175d5f3f02b3b3b7e62f6d957fba80388cc1fbb705ab",
+      "method": 0,
+      "originalBytes": 1922807
+    },
+    {
+      "id": "ch9_0_art",
+      "file": "assets/images/ch9_0_art.png",
+      "offset": 0,
+      "bytes": 2082062,
+      "sha256": "ccf62cb5a66bf7e7f16c7cb145307760430a5622f435dafcaade9cf719312b1a",
+      "method": 0,
+      "originalBytes": 2082062
+    },
+    {
+      "id": "ch9_0_ez",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 0,
+      "bytes": 69254,
+      "sha256": "a42c44cabf74ba16d99ce953a72943df106791aae24a02c3b9ccf402fb7cbdfa",
+      "method": 0,
+      "originalBytes": 69254
+    },
+    {
+      "id": "ch9_0_ez_info",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 69254,
+      "bytes": 226,
+      "sha256": "a6ed36d086af4c99841571fad3f52dc37c37e3145f213e36ce6096aa1b192002",
+      "method": 9,
+      "originalBytes": 266
+    },
+    {
+      "id": "ch9_0_hd",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 69480,
+      "bytes": 197979,
+      "sha256": "736388e75776332ce45095771cc49126f5f62c28d6191e23ab958203dbc4d6a9",
+      "method": 0,
+      "originalBytes": 197979
+    },
+    {
+      "id": "ch9_0_hd_info",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 267459,
+      "bytes": 226,
+      "sha256": "0f491c197244d81283f7dd4a0ae56f88df3dbd415f544452d7057343c091a8b8",
+      "method": 9,
+      "originalBytes": 266
+    },
+    {
+      "id": "ch9_0_in",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 267685,
+      "bytes": 723252,
+      "sha256": "923a654d5f48c9e74722fe01bd57298a23dcf89e52c7ac8c08ac1e6b2e9c943a",
+      "method": 0,
+      "originalBytes": 723252
+    },
+    {
+      "id": "ch9_0_in_info",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 990937,
+      "bytes": 228,
+      "sha256": "fd88d5d07f6a1c4190546ab6ad3f6f4feb786fef1f20ce0e6e744f1375610dac",
+      "method": 9,
+      "originalBytes": 268
+    },
+    {
+      "id": "ch9_0_at",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 991165,
+      "bytes": 3798389,
+      "sha256": "5a67cef9e448d16e0ac5fcdffa00bbc30bc5ff5cf8423a447dc3e0abcb37057f",
+      "method": 0,
+      "originalBytes": 3798389
+    },
+    {
+      "id": "ch9_0_at_info",
+      "file": "assets/charts/ch9_0.bin",
+      "offset": 4789554,
+      "bytes": 210,
+      "sha256": "54ac2d1a5681a0e8a43f8802e749ee1c860af9cac1d2ada81754853b32ff1a8f",
+      "method": 9,
+      "originalBytes": 254
+    },
+    {
+      "id": "ch9_1_music",
+      "file": "assets/audio/ch9_1_music.ogg",
+      "offset": 0,
+      "bytes": 1991566,
+      "sha256": "9ab35fdff6b349233c0f2988148e093bf99491a261e9d1949ed7e6fe9c364e6e",
+      "method": 0,
+      "originalBytes": 1991566
+    },
+    {
+      "id": "ch9_1_art",
+      "file": "assets/images/ch9_1_art.png",
+      "offset": 0,
+      "bytes": 2513799,
+      "sha256": "ba1a956eadeb6f97c54aa8e346bed5a335339c68cfff3453f0301fc0f219927c",
+      "method": 0,
+      "originalBytes": 2513799
+    },
+    {
+      "id": "ch9_1_ez",
+      "file": "assets/charts/ch9_1.bin",
+      "offset": 0,
+      "bytes": 25034,
+      "sha256": "b1e23afd2d14448ae42acc06f3872ad67669a571bf3be34425058ff56e7b1e95",
+      "method": 14,
+      "originalBytes": 198508
+    },
+    {
+      "id": "ch9_1_ez_info",
+      "file": "assets/charts/ch9_1.bin",
+      "offset": 25034,
+      "bytes": 248,
+      "sha256": "cc7deb09431dd1feb8d4c379f3f6d4bbacd6f87e453f6865d0f9aa0a80d70bd3",
+      "method": 9,
+      "originalBytes": 293
+    },
+    {
+      "id": "ch9_1_hd",
+      "file": "assets/charts/ch9_1.bin",
+      "offset": 25282,
+      "bytes": 37659,
+      "sha256": "8f8bda06ce7e858afb9e1b1432a93e29b205abae5b9766110598d27feeaaea6c",
+      "method": 14,
+      "originalBytes": 449978
+    },
+    {
+      "id": "ch9_1_hd_info",
+      "file": "assets/charts/ch9_1.bin",
+      "offset": 62941,
+      "bytes": 248,
+      "sha256": "57333db34400076743e6d583999a51303de50af08b29430774aa83575a028e17",
+      "method": 9,
+      "originalBytes": 293
+    },
+    {
+      "id": "ch9_1_in",
+      "file": "assets/charts/ch9_1.bin",
+      "offset": 63189,
+      "bytes": 136160,
+      "sha256": "77b0566cd596957ae592d1e12e522344cf8b2349ed1c71e6d26693694368813d",
+      "method": 14,
+      "originalBytes": 1087325
+    },
+    {
+      "id": "ch9_1_in_info",
+      "file": "assets/charts/ch9_1.bin",
+      "offset": 199349,
+      "bytes": 250,
+      "sha256": "418ff269d5850c7737de94520e352083f8e8268a855ce646713d07c942eddfee",
+      "method": 9,
+      "originalBytes": 295
+    },
+    {
+      "id": "ch9_2_music",
+      "file": "assets/audio/ch9_2_music.ogg",
+      "offset": 0,
+      "bytes": 2025877,
+      "sha256": "4742c4002ad0929b726cc43c0295620f8efc8882ce0c764e14949abc83223f81",
+      "method": 0,
+      "originalBytes": 2025877
+    },
+    {
+      "id": "ch9_2_art",
+      "file": "assets/images/ch9_2_art.png",
+      "offset": 0,
+      "bytes": 2399698,
+      "sha256": "c74d87395d59e55761c8a8d6b3d5069a97863ce27e94fc786db163f163c4295a",
+      "method": 0,
+      "originalBytes": 2399698
+    },
+    {
+      "id": "ch9_2_ez",
+      "file": "assets/charts/ch9_2.bin",
+      "offset": 0,
+      "bytes": 20983,
+      "sha256": "d5283e58ff1990fd27148689c2fd8042fd335df8a785bcb9225eccffaa75e0ae",
+      "method": 14,
+      "originalBytes": 130949
+    },
+    {
+      "id": "ch9_2_ez_info",
+      "file": "assets/charts/ch9_2.bin",
+      "offset": 20983,
+      "bytes": 222,
+      "sha256": "22bb9fb969cbe1a2e69bcbb61e36f28ab065d46827f438442a1b4f521c2a75bf",
+      "method": 9,
+      "originalBytes": 274
+    },
+    {
+      "id": "ch9_2_hd",
+      "file": "assets/charts/ch9_2.bin",
+      "offset": 21205,
+      "bytes": 35152,
+      "sha256": "4198c5e8bea0bafc60592889c96e0d0ae806de6a422b99a1e95a32e58d818339",
+      "method": 14,
+      "originalBytes": 194753
+    },
+    {
+      "id": "ch9_2_hd_info",
+      "file": "assets/charts/ch9_2.bin",
+      "offset": 56357,
+      "bytes": 225,
+      "sha256": "5fddf3bd5c059380c59ad4bed911b489fb9c8736b2ba0efcf4df0c4c02abe7da",
+      "method": 9,
+      "originalBytes": 276
+    },
+    {
+      "id": "ch9_2_in",
+      "file": "assets/charts/ch9_2.bin",
+      "offset": 56582,
+      "bytes": 88572,
+      "sha256": "779a6a6ef6eafbbf0fcd551f61ea3365b58fba8164af9bb4a4f68d2403154465",
+      "method": 14,
+      "originalBytes": 484481
+    },
+    {
+      "id": "ch9_2_in_info",
+      "file": "assets/charts/ch9_2.bin",
+      "offset": 145154,
+      "bytes": 237,
+      "sha256": "371290192aaf54c413c0defbc5ae57254a15f189f35cd4916d3a433a88bf01b1",
+      "method": 9,
+      "originalBytes": 289
+    },
+    {
+      "id": "ch9_3_music",
+      "file": "assets/audio/ch9_3_music.ogg",
+      "offset": 0,
+      "bytes": 1936333,
+      "sha256": "a0cf6424c6c76735da9c8ddf95674d648103ad0a0828115d4281b1974f88b27f",
+      "method": 0,
+      "originalBytes": 1936333
+    },
+    {
+      "id": "ch9_3_art",
+      "file": "assets/images/ch9_3_art.png",
+      "offset": 0,
+      "bytes": 2359966,
+      "sha256": "5a518bcbf96069bb28d08bc5fd4368fd1cf8a9ffc10410eb69be9a5818954b6a",
+      "method": 0,
+      "originalBytes": 2359966
+    },
+    {
+      "id": "ch9_3_ez",
+      "file": "assets/charts/ch9_3.bin",
+      "offset": 0,
+      "bytes": 64412,
+      "sha256": "0af1ad3fa85115a31edb4130ccd5e7aee98d61130c11cf44da45f8265b3179cc",
+      "method": 14,
+      "originalBytes": 536811
+    },
+    {
+      "id": "ch9_3_ez_info",
+      "file": "assets/charts/ch9_3.bin",
+      "offset": 64412,
+      "bytes": 236,
+      "sha256": "3ac5a7ec9d8680d29772741c349238b41f802495653570861ae612da7e2cdf40",
+      "method": 9,
+      "originalBytes": 286
+    },
+    {
+      "id": "ch9_3_hd",
+      "file": "assets/charts/ch9_3.bin",
+      "offset": 64648,
+      "bytes": 73282,
+      "sha256": "4949478f1099f80eab57a27ec2b64e107f2f5d76b555b6991d9d8b757e2b6f5f",
+      "method": 14,
+      "originalBytes": 485514
+    },
+    {
+      "id": "ch9_3_hd_info",
+      "file": "assets/charts/ch9_3.bin",
+      "offset": 137930,
+      "bytes": 241,
+      "sha256": "c25f35c30552748ffb886a0a1cadfe0944673fa349437b25037188ea084bceb9",
+      "method": 9,
+      "originalBytes": 288
+    },
+    {
+      "id": "ch9_3_in",
+      "file": "assets/charts/ch9_3.bin",
+      "offset": 138171,
+      "bytes": 230534,
+      "sha256": "d242d382f4e0b3f7d62f329e1695e47c3fc40ae0023a9f6c8a29228c8f03cd4b",
+      "method": 14,
+      "originalBytes": 1313866
+    },
+    {
+      "id": "ch9_3_in_info",
+      "file": "assets/charts/ch9_3.bin",
+      "offset": 368705,
+      "bytes": 244,
+      "sha256": "c2162dbea6654174336d044037ca5555a9d9ae282006ddb70af8f85816fea2fe",
+      "method": 9,
+      "originalBytes": 302
+    },
+    {
+      "id": "ch9_4_music",
+      "file": "assets/audio/ch9_4_music.ogg",
+      "offset": 0,
+      "bytes": 2123174,
+      "sha256": "a7cc24091b4f304416fc26262951306adcf29a664d614375d36680575cc7f7c6",
+      "method": 0,
+      "originalBytes": 2123174
+    },
+    {
+      "id": "ch9_4_art",
+      "file": "assets/images/ch9_4_art.png",
+      "offset": 0,
+      "bytes": 2965370,
+      "sha256": "bac016e69d35c95efe64d1cb8661fee74523920d1b744c633e0d8283c2f3c82b",
+      "method": 0,
+      "originalBytes": 2965370
+    },
+    {
+      "id": "ch9_4_ez",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 0,
+      "bytes": 62650,
+      "sha256": "e3a0e0336572fc46d550d8c931728d1c038f32cf7b46f2bd36d837627fe504ff",
+      "method": 14,
+      "originalBytes": 490273
+    },
+    {
+      "id": "ch9_4_ez_info",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 62650,
+      "bytes": 244,
+      "sha256": "670fce25f93f9877847fd239b2804365ba013d384eb9c31d3b9409dd5cf5f9eb",
+      "method": 9,
+      "originalBytes": 302
+    },
+    {
+      "id": "ch9_4_hd",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 62894,
+      "bytes": 86597,
+      "sha256": "eaba4cd98739ea11fd9d06557e9ac7ea541a005bc4d2b7a5899874e89a42aad6",
+      "method": 14,
+      "originalBytes": 1079671
+    },
+    {
+      "id": "ch9_4_hd_info",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 149491,
+      "bytes": 249,
+      "sha256": "9324e773ebd6fea548e98b3cdb38fb3a212f4f339fc0084309f531bc90cb2368",
+      "method": 9,
+      "originalBytes": 305
+    },
+    {
+      "id": "ch9_4_in",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 149740,
+      "bytes": 166670,
+      "sha256": "0cec79a36cafde7135637b2c83002a6efa25172f5ce1ad27e4bfbd35737c8e12",
+      "method": 14,
+      "originalBytes": 1056365
+    },
+    {
+      "id": "ch9_4_in_info",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 316410,
+      "bytes": 249,
+      "sha256": "8540038caa27631d4d94a3764d7e8135998e674f35cefb768ee603ff4f279563",
+      "method": 9,
+      "originalBytes": 303
+    },
+    {
+      "id": "ch9_4_at",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 316659,
+      "bytes": 130444,
+      "sha256": "bc936745dd263da4c157390d7c2a026f0f8766a7ad53b5a7ca52eabc8459a56e",
+      "method": 14,
+      "originalBytes": 941819
+    },
+    {
+      "id": "ch9_4_at_info",
+      "file": "assets/charts/ch9_4.bin",
+      "offset": 447103,
+      "bytes": 249,
+      "sha256": "4913bddd705e84857f1feb7796c14e65d9edb6176842adc043e9685d41fd373e",
+      "method": 9,
+      "originalBytes": 304
+    },
+    {
+      "id": "ch9_5_music",
+      "file": "assets/audio/ch9_5_music.ogg",
+      "offset": 0,
+      "bytes": 2602309,
+      "sha256": "88c76d9da269f1fab4f8ccba3b486d4c644784aab67f17fd4b92a355fd08df3f",
+      "method": 0,
+      "originalBytes": 2602309
+    },
+    {
+      "id": "ch9_5_art",
+      "file": "assets/images/ch9_5_art.png",
+      "offset": 0,
+      "bytes": 3760343,
+      "sha256": "02e0e6c98242ab4ba34d631f84d4ad8d1c39d4efa14561bc6d2bd97cc4bdc692",
+      "method": 0,
+      "originalBytes": 3760343
+    },
+    {
+      "id": "ch9_5_ez",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 0,
+      "bytes": 153504,
+      "sha256": "3e19adacbe5379b9e17ada3c7050b64381ff8e733cb0f7f472440c5172f536a8",
+      "method": 14,
+      "originalBytes": 761462
+    },
+    {
+      "id": "ch9_5_ez_info",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 153504,
+      "bytes": 249,
+      "sha256": "7c31874ffeebf5ee96a6a125f3fae5894e829656d0fe2d2c634a808d0ef9c0f3",
+      "method": 9,
+      "originalBytes": 300
+    },
+    {
+      "id": "ch9_5_hd",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 153753,
+      "bytes": 91171,
+      "sha256": "6d1ae77dd9608e8906fbaa407a7b72161e08665e1e63c5b40934bd991106e4c5",
+      "method": 14,
+      "originalBytes": 782689
+    },
+    {
+      "id": "ch9_5_hd_info",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 244924,
+      "bytes": 254,
+      "sha256": "87457767603c49debf3e68ae6d3319762e8cf3fefea35a48f0fc102531e4d72d",
+      "method": 9,
+      "originalBytes": 303
+    },
+    {
+      "id": "ch9_5_in",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 245178,
+      "bytes": 231879,
+      "sha256": "176773ed938a40c6ecca7438c174bf4d47f790f5fce964daf487b827ae598ead",
+      "method": 14,
+      "originalBytes": 1719064
+    },
+    {
+      "id": "ch9_5_in_info",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 477057,
+      "bytes": 253,
+      "sha256": "528fb709a585914acfed5afb08ac78d3f18c4a83aabcf2088669ad4d95debbe0",
+      "method": 9,
+      "originalBytes": 303
+    },
+    {
+      "id": "ch9_5_at",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 477310,
+      "bytes": 283894,
+      "sha256": "be98335afb457f269c6760d9601478f907abd288d10ff4bd9fdc040c0e50a4bb",
+      "method": 14,
+      "originalBytes": 1741622
+    },
+    {
+      "id": "ch9_5_at_info",
+      "file": "assets/charts/ch9_5.bin",
+      "offset": 761204,
+      "bytes": 256,
+      "sha256": "055ced16996b72500ab41a151a4fa83f142d47ad077889ef7c2dbf494d8df93c",
+      "method": 9,
+      "originalBytes": 307
+    },
+    {
+      "id": "ch9_7_music",
+      "file": "assets/audio/ch9_7_music.ogg",
+      "offset": 0,
+      "bytes": 2644690,
+      "sha256": "46833a3b19e1157884bb1cc42582207930d1d6a5126d072cf127cfcb9ffe9ebe",
+      "method": 0,
+      "originalBytes": 2644690
+    },
+    {
+      "id": "ch9_7_art",
+      "file": "assets/images/ch9_7_art.png",
+      "offset": 0,
+      "bytes": 3320385,
+      "sha256": "2484c0247872057b0a7f94db4cddf27aa76b7aa0b1e1f5afd975b0f91ed696d2",
+      "method": 0,
+      "originalBytes": 3320385
+    },
+    {
+      "id": "ch9_7_ez",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 0,
+      "bytes": 43681,
+      "sha256": "a287e139fedd0920712619a60f3b9e4912b7a9b9bb6da5e54d207bcc77f665be",
+      "method": 14,
+      "originalBytes": 167534
+    },
+    {
+      "id": "ch9_7_ez_info",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 43681,
+      "bytes": 212,
+      "sha256": "0bf7235a827e13c27abaee20e7c4ac68dd128e3bbec8800398f348e2cb1a430c",
+      "method": 9,
+      "originalBytes": 262
+    },
+    {
+      "id": "ch9_7_hd",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 43893,
+      "bytes": 46671,
+      "sha256": "39f02a9e5d63c7e5b1325311d15c2bd96676faacdf9b974fe987d7e34278153a",
+      "method": 14,
+      "originalBytes": 278246
+    },
+    {
+      "id": "ch9_7_hd_info",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 90564,
+      "bytes": 214,
+      "sha256": "0e73a42635f801792b9792064a90edc4b36745f90bc25fb165813d7cbcffa993",
+      "method": 9,
+      "originalBytes": 263
+    },
+    {
+      "id": "ch9_7_in",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 90778,
+      "bytes": 86063,
+      "sha256": "42cc720b9d5695f2209b2cae713a95c0108d64176e8c09e34ca1e365ba4341fe",
+      "method": 14,
+      "originalBytes": 709782
+    },
+    {
+      "id": "ch9_7_in_info",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 176841,
+      "bytes": 215,
+      "sha256": "ebf0f885d5a247726729960647f4b9a0d3bf47c7e67bf07d3e64a06083bdf2ce",
+      "method": 9,
+      "originalBytes": 265
+    },
+    {
+      "id": "ch9_7_at",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 177056,
+      "bytes": 153441,
+      "sha256": "9818b545fa47afd6aacb9fecccecbded0d884f2264ca887e81d69f5f074856ea",
+      "method": 14,
+      "originalBytes": 1239027
+    },
+    {
+      "id": "ch9_7_at_info",
+      "file": "assets/charts/ch9_7.bin",
+      "offset": 330497,
+      "bytes": 206,
+      "sha256": "0d149388e35edfc15dafb0cb6ea7d16d87e6c933d3c7e391be25cdae702c04c1",
+      "method": 9,
+      "originalBytes": 263
+    },
+    {
+      "id": "ch9_8_music",
+      "file": "assets/audio/ch9_8_music.ogg",
+      "offset": 0,
+      "bytes": 2534724,
+      "sha256": "94d928f505aa200592dff1e4089e0a3a4921aac70dcaeba2808338424a69a69b",
+      "method": 0,
+      "originalBytes": 2534724
+    },
+    {
+      "id": "ch9_8_art",
+      "file": "assets/images/ch9_8_art.png",
+      "offset": 0,
+      "bytes": 4902281,
+      "sha256": "44f09091b4ec888a8af9a51a977b21fa0b09ea7c19cd30e9b321049ba8ae2fb2",
+      "method": 0,
+      "originalBytes": 4902281
+    },
+    {
+      "id": "ch9_8_ez",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 0,
+      "bytes": 41397,
+      "sha256": "092f32dabd333600c5769549a48100764976fa3b6c685647f923f45ca85cd19d",
+      "method": 14,
+      "originalBytes": 189388
+    },
+    {
+      "id": "ch9_8_ez_info",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 41397,
+      "bytes": 234,
+      "sha256": "ea12921736b402af87c46157756c4b932a8751f25e7797bb32e6933315fe0fe5",
+      "method": 9,
+      "originalBytes": 280
+    },
+    {
+      "id": "ch9_8_hd",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 41631,
+      "bytes": 79619,
+      "sha256": "a52ac44b9670789749ae6e2eddd0c2e63b2a83f062087a3ca6c34b4ea85ddfaa",
+      "method": 14,
+      "originalBytes": 636888
+    },
+    {
+      "id": "ch9_8_hd_info",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 121250,
+      "bytes": 237,
+      "sha256": "c8c25727ccc9766c6a02f81b535ca3d11882753154ad975d273c6c010d600b61",
+      "method": 9,
+      "originalBytes": 283
+    },
+    {
+      "id": "ch9_8_in",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 121487,
+      "bytes": 99659,
+      "sha256": "fcf3b9e7fa66b407b2cb577dd4438c79965bb0524d1a960bd4f41b008dffb396",
+      "method": 14,
+      "originalBytes": 539496
+    },
+    {
+      "id": "ch9_8_in_info",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 221146,
+      "bytes": 234,
+      "sha256": "cef8a7548fae0784cbeceab0d914ee9b377b926b962d127ecc0060b08283f09f",
+      "method": 9,
+      "originalBytes": 280
+    },
+    {
+      "id": "ch9_8_at",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 221380,
+      "bytes": 223131,
+      "sha256": "65a1ac75a84367ee558d4b449b02a32be650041f19145b69d0d7ee2feaf9d6d6",
+      "method": 14,
+      "originalBytes": 1416316
+    },
+    {
+      "id": "ch9_8_at_info",
+      "file": "assets/charts/ch9_8.bin",
+      "offset": 444511,
+      "bytes": 230,
+      "sha256": "bda6a0b2e3a2ca71f5511e5a6212f7fd3a3ca2c493de9c1352eaaa10b805b3ea",
+      "method": 9,
+      "originalBytes": 286
+    },
+    {
+      "id": "ch9_9_music",
+      "file": "assets/audio/ch9_9_music.ogg",
+      "offset": 0,
+      "bytes": 2486239,
+      "sha256": "4dc62036ccfc1989205a6aa95619f80927a2bc359ec791db01c2473a7e382e19",
+      "method": 0,
+      "originalBytes": 2486239
+    },
+    {
+      "id": "ch9_9_art",
+      "file": "assets/images/ch9_9_art.png",
+      "offset": 0,
+      "bytes": 2329681,
+      "sha256": "8459fbea476f63caa6160cf11af9ad3fef9092306ce15f809c1bbed624a0751d",
+      "method": 0,
+      "originalBytes": 2329681
+    },
+    {
+      "id": "ch9_9_ez",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 0,
+      "bytes": 14303,
+      "sha256": "64be91cbe84489461d58f21aff251828e32244009e64bfd537e36cdca0dee17e",
+      "method": 14,
+      "originalBytes": 61501
+    },
+    {
+      "id": "ch9_9_ez_info",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 14303,
+      "bytes": 223,
+      "sha256": "88304fa7798e260fe9ad97d66f80c8a458df518269e9cef04a201d242a456f0c",
+      "method": 9,
+      "originalBytes": 271
+    },
+    {
+      "id": "ch9_9_hd",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 14526,
+      "bytes": 29782,
+      "sha256": "3bfa7fbb627e0039f3b028b8507d2d84aff5a7106f3eb9fbfbc7d26e31918066",
+      "method": 14,
+      "originalBytes": 153536
+    },
+    {
+      "id": "ch9_9_hd_info",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 44308,
+      "bytes": 225,
+      "sha256": "f1e3f93b2d90062f02573f527d4b73700728e21ad11d8994672c331e84c4a9a9",
+      "method": 9,
+      "originalBytes": 273
+    },
+    {
+      "id": "ch9_9_in",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 44533,
+      "bytes": 96666,
+      "sha256": "0484a9efc10670b281812852086b74b59fd2e196173eccdecf3b702b65f92dac",
+      "method": 14,
+      "originalBytes": 430021
+    },
+    {
+      "id": "ch9_9_in_info",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 141199,
+      "bytes": 225,
+      "sha256": "5b6acdb44c66e71624a1c02bc99bfb942813e668b8d65d52a4e07fd75a7f2892",
+      "method": 9,
+      "originalBytes": 273
+    },
+    {
+      "id": "ch9_9_at",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 141424,
+      "bytes": 185360,
+      "sha256": "be4989acf5a9b172004c1f02b7660d1ae220e9200f8d5c763ade1ae8d332046b",
+      "method": 14,
+      "originalBytes": 2718047
+    },
+    {
+      "id": "ch9_9_at_info",
+      "file": "assets/charts/ch9_9.bin",
+      "offset": 326784,
+      "bytes": 224,
+      "sha256": "90bab68fb871e0633ab363a7a250107cbb92e189202d359764fe8272e71c3df7",
+      "method": 9,
+      "originalBytes": 273
+    },
+    {
+      "id": "ch9_10_music",
+      "file": "assets/audio/ch9_10_music.ogg",
+      "offset": 0,
+      "bytes": 2352757,
+      "sha256": "a25a54588559237cd8ca114e505f677f57e4cb695595146efd30171cbc22bdba",
+      "method": 0,
+      "originalBytes": 2352757
+    },
+    {
+      "id": "ch9_10_art",
+      "file": "assets/images/ch9_10_art.png",
+      "offset": 0,
+      "bytes": 3352089,
+      "sha256": "1122e5c2f7223e60a887cb3f498ad9e129764b95a247a032c49bbb4a997792a0",
+      "method": 0,
+      "originalBytes": 3352089
+    },
+    {
+      "id": "ch9_10_ez",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 0,
+      "bytes": 60941,
+      "sha256": "db6eea44b7104bd3924fdd9c0b61df37f8eaf0b4ce390585d7d6fafcd0cab71c",
+      "method": 14,
+      "originalBytes": 297083
+    },
+    {
+      "id": "ch9_10_ez_info",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 60941,
+      "bytes": 257,
+      "sha256": "08488bb4c98b6424a94eb7f0b3f2d369bcb08216d01e5a4295c5e277d8d639f8",
+      "method": 9,
+      "originalBytes": 308
+    },
+    {
+      "id": "ch9_10_hd",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 61198,
+      "bytes": 95258,
+      "sha256": "651a440f90b568cd5d38fc95b1bd14dbd0415e4cefb11c439956791424def8d4",
+      "method": 14,
+      "originalBytes": 589138
+    },
+    {
+      "id": "ch9_10_hd_info",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 156456,
+      "bytes": 254,
+      "sha256": "471623e8a7c94181bda801c08e20793182b1a084c49be40a16b39fa8d6cd5598",
+      "method": 9,
+      "originalBytes": 305
+    },
+    {
+      "id": "ch9_10_in",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 156710,
+      "bytes": 174982,
+      "sha256": "3f40b5485d85281a1041fe14a361a6985ac2eaafbba8d740d9366f1e171f772d",
+      "method": 14,
+      "originalBytes": 915167
+    },
+    {
+      "id": "ch9_10_in_info",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 331692,
+      "bytes": 254,
+      "sha256": "5268f783762736e5f620c3c3007ea12ddff9cb7001a027b6664da11e81253922",
+      "method": 9,
+      "originalBytes": 305
+    },
+    {
+      "id": "ch9_10_at",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 331946,
+      "bytes": 306848,
+      "sha256": "3157854563e493910a428e160e3274127a80b7e706c98686b795127ba75c0a70",
+      "method": 14,
+      "originalBytes": 1585071
+    },
+    {
+      "id": "ch9_10_at_info",
+      "file": "assets/charts/ch9_10.bin",
+      "offset": 638794,
+      "bytes": 235,
+      "sha256": "efc687149e0f9b77419ab17b1806cae67c08fcd3c3b326489fd2057b4ed11bce",
+      "method": 9,
+      "originalBytes": 302
+    },
+    {
+      "id": "ch9_11_music",
+      "file": "assets/audio/ch9_11_music.ogg",
+      "offset": 0,
+      "bytes": 2435927,
+      "sha256": "0414bec5b7de47d9c3e23837abaa9e476009fb68b4059f2f8c5535401cd32832",
+      "method": 0,
+      "originalBytes": 2435927
+    },
+    {
+      "id": "ch9_11_art",
+      "file": "assets/images/ch9_11_art.png",
+      "offset": 0,
+      "bytes": 2622574,
+      "sha256": "25fcd2cb877e0a2d309d12ef2385467bd7fa19843be1087a350d35d212c77f15",
+      "method": 0,
+      "originalBytes": 2622574
+    },
+    {
+      "id": "ch9_11_ez",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 0,
+      "bytes": 39673,
+      "sha256": "13d1692bbfaaa3f30399dd5f7fcb129103702bc010fd316d3e9e2a5718dec1f7",
+      "method": 14,
+      "originalBytes": 183641
+    },
+    {
+      "id": "ch9_11_ez_info",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 39673,
+      "bytes": 243,
+      "sha256": "93ba3cd650abff3907f6bb9771f845733383c99a0bb0bd86ec3b180f77a458c8",
+      "method": 9,
+      "originalBytes": 294
+    },
+    {
+      "id": "ch9_11_hd",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 39916,
+      "bytes": 88212,
+      "sha256": "69b2916c65d35a0933be130f0970fdc1a76fe68160f57e787beb1a51c296574a",
+      "method": 14,
+      "originalBytes": 616824
+    },
+    {
+      "id": "ch9_11_hd_info",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 128128,
+      "bytes": 249,
+      "sha256": "bf8739430dab8b5f75ca356644f1a6e3e9ff94a694f50eaf96b9c49e68e5f8cb",
+      "method": 9,
+      "originalBytes": 296
+    },
+    {
+      "id": "ch9_11_in",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 128377,
+      "bytes": 120789,
+      "sha256": "adb5a98728a5f4b09c13b8facd42d88b6dd357256d35540e93e5e184ba141c5d",
+      "method": 14,
+      "originalBytes": 646274
+    },
+    {
+      "id": "ch9_11_in_info",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 249166,
+      "bytes": 250,
+      "sha256": "5e2513bfa7b8e9e4b8c073fa2a61ce5a6af5ad8f731445508b4af7c0201aff0c",
+      "method": 9,
+      "originalBytes": 294
+    },
+    {
+      "id": "ch9_11_at",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 249416,
+      "bytes": 161990,
+      "sha256": "11fb1b836c1ab9d3750a43d85fd9ba06e5a2296fc9d18d25ba75dcaee124e599",
+      "method": 14,
+      "originalBytes": 985173
+    },
+    {
+      "id": "ch9_11_at_info",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 411406,
+      "bytes": 252,
+      "sha256": "07edbe4503313a5e773566f0f9fda3316dddd3768dd248c4f4cc74e5acfa125e",
+      "method": 9,
+      "originalBytes": 296
+    },
+    {
+      "id": "ch9_11_sp",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 411658,
+      "bytes": 171095,
+      "sha256": "93cb1c5e15b255fe09fd01c1088671dcd005ede344160b6d3a805263e81ce744",
+      "method": 14,
+      "originalBytes": 1616626
+    },
+    {
+      "id": "ch9_11_sp_info",
+      "file": "assets/charts/ch9_11.bin",
+      "offset": 582753,
+      "bytes": 227,
+      "sha256": "ebb9580840b046709876793a616ef2e1fe42d009b1e58799abbb34e1775006b0",
+      "method": 9,
+      "originalBytes": 271
+    },
+    {
+      "id": "ch9_12_music",
+      "file": "assets/audio/ch9_12_music.ogg",
+      "offset": 0,
+      "bytes": 2521479,
+      "sha256": "66206715c7f2e4b44939435c5fb89151db72a2f70a200fd0bfdadcdc9ca6a55b",
+      "method": 0,
+      "originalBytes": 2521479
+    },
+    {
+      "id": "ch9_12_artEZ",
+      "file": "assets/images/ch9_12_artEZ.png",
+      "offset": 0,
+      "bytes": 2243954,
+      "sha256": "7163f838c62536ac7716f148e73ac0bf618dc1fa13dadfe3382e5530f37e13ec",
+      "method": 0,
+      "originalBytes": 2243954
+    },
+    {
+      "id": "ch9_12_artHD",
+      "file": "assets/images/ch9_12_artHD.png",
+      "offset": 0,
+      "bytes": 2318536,
+      "sha256": "e8422d9696a18df46574dcb2b2a080f956df4d3b2cf37e3f13d44fcd86b2bd2f",
+      "method": 0,
+      "originalBytes": 2318536
+    },
+    {
+      "id": "ch9_12_artIN",
+      "file": "assets/images/ch9_12_artIN.png",
+      "offset": 0,
+      "bytes": 2235220,
+      "sha256": "06d1b50365de03fd27647b623a3101cfe1011330d8508c63ab6fb6736371a16a",
+      "method": 0,
+      "originalBytes": 2235220
+    },
+    {
+      "id": "ch9_12_artAT",
+      "file": "assets/images/ch9_12_artAT.png",
+      "offset": 0,
+      "bytes": 2317589,
+      "sha256": "43226b33f15384334ffc0315afc48f4a6391d5634864958b6c6b77cf168659e9",
+      "method": 0,
+      "originalBytes": 2317589
+    },
+    {
+      "id": "ch9_12_ez",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 0,
+      "bytes": 85682,
+      "sha256": "58cc337a3cb34f6fb52626d6281f632dafc210a7c661af6a886b689043b3fdba",
+      "method": 14,
+      "originalBytes": 567293
+    },
+    {
+      "id": "ch9_12_ez_info",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 85682,
+      "bytes": 302,
+      "sha256": "1791c088dfa3e21429427e690294bf2b83960dee3100aa5d9b1d60d46825d230",
+      "method": 9,
+      "originalBytes": 353
+    },
+    {
+      "id": "ch9_12_hd",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 85984,
+      "bytes": 39213,
+      "sha256": "9be105a1b889a08ad202a8b3770c46bede32d24afada1f171b841056002f7a16",
+      "method": 14,
+      "originalBytes": 293090
+    },
+    {
+      "id": "ch9_12_hd_info",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 125197,
+      "bytes": 302,
+      "sha256": "ad4b0a18c3c8d44fe9911f185c8b1b107824505fdd14e6bf319415ffed243b5e",
+      "method": 9,
+      "originalBytes": 355
+    },
+    {
+      "id": "ch9_12_in",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 125499,
+      "bytes": 188575,
+      "sha256": "d277aac11e366161519135425bf151b91efb421e61b6815a311ca5d0faeaa367",
+      "method": 14,
+      "originalBytes": 1566896
+    },
+    {
+      "id": "ch9_12_in_info",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 314074,
+      "bytes": 303,
+      "sha256": "c3b0ff707a9146bd8ba1909a71a2fd8be45aa922cffcd6c895dff4e7c4bca11f",
+      "method": 9,
+      "originalBytes": 355
+    },
+    {
+      "id": "ch9_12_at",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 314377,
+      "bytes": 159499,
+      "sha256": "7c39a933df61c7657fbbf9a52e3c650424ee267507fcf8c082d0c39a8c3bdadd",
+      "method": 14,
+      "originalBytes": 828570
+    },
+    {
+      "id": "ch9_12_at_info",
+      "file": "assets/charts/ch9_12.bin",
+      "offset": 473876,
+      "bytes": 302,
+      "sha256": "4e4f3d84e19131f88f0a2124a2a3f3cd9f0db4b3b21fee22f314aa80b4a810f9",
+      "method": 9,
+      "originalBytes": 355
+    }
+  ],
+  "ui": [
+    {
+      "file": "assets/ui/afa450a810b74638.png",
+      "bytes": 5403,
+      "sha256": "afa450a810b74638b42592a1052578114752e5605ec5cd39fa0d04264a034abd",
+      "mime": "image/png"
+    },
+    {
+      "file": "assets/ui/cb60d40405b9af2a.png",
+      "bytes": 82887,
+      "sha256": "cb60d40405b9af2a3ddfd7c76ac046d32d217de11e86d5a716cb56f548fd7954",
+      "mime": "image/png"
+    },
+    {
+      "file": "assets/ui/13c6ef3641945cc1.png",
+      "bytes": 1074,
+      "sha256": "13c6ef3641945cc16977bf097a247e4b8ae3dd863ba9b786e2b417335ea5a42f",
+      "mime": "image/png"
+    },
+    {
+      "file": "assets/ui/bf216f44ac21bf2c.png",
+      "bytes": 59238,
+      "sha256": "bf216f44ac21bf2c4bffa5f8795fc7bc03c9701b1bf85ab4f406c5ec7642dbaa",
+      "mime": "image/png"
+    },
+    {
+      "file": "assets/ui/d65b08975e2b2814.woff2",
+      "bytes": 29744,
+      "sha256": "d65b08975e2b28141e2ca08ca90bf976a6b0b1d23b9ec22085bcd3a319b075d3",
+      "mime": "font/woff2"
+    },
+    {
+      "file": "assets/ui/0ffce31409ad144a.woff",
+      "bytes": 122696,
+      "sha256": "0ffce31409ad144a8b104143f48d93b744364a478a51b613988f593065fe2b45",
+      "mime": "font/woff"
+    },
+    {
+      "file": "assets/ui/d7dd3e86b7a47a5a.webp",
+      "bytes": 87808,
+      "sha256": "d7dd3e86b7a47a5aebc0dd6972c25ad1d8027f1b941ac68f7a21fed7c810fbab",
+      "mime": "image/webp"
+    },
+    {
+      "file": "assets/ui/723a45d2b0fe5f66.png",
+      "bytes": 6901,
+      "sha256": "723a45d2b0fe5f66bfc1167a4c8a744b0e707c8346edc5e1a756806a192e11a0",
+      "mime": "image/png"
+    },
+    {
+      "file": "assets/ui/b085670cc9e04b12.webp",
+      "bytes": 56866,
+      "sha256": "b085670cc9e04b12d482621ab35acb0a3cd3cc87aa740fbc0f7c9687ca78aeb9",
+      "mime": "image/webp"
+    },
+    {
+      "file": "assets/ui/8c7d10849712112a.svg",
+      "bytes": 140,
+      "sha256": "8c7d10849712112abd8b7cfd4deec7a303bc0f7c85368595af06bde680f78d9c",
+      "mime": "image/svg+xml"
+    }
+  ],
+  "skin": {
+    "file": "assets/packs/original-skin.zip",
+    "bytes": 2969183,
+    "sha256": "2aa0e14d6741fecf7707579b42def2da9d54a6ccca63338ca8847c289d83fa0f"
+  }
+}

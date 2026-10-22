@@ -1,0 +1,7 @@
+
+/* Native noise post-pass: scene (including HUD) -> ActiveBlock -> pause UI. */
+.phiNativeNoiseOverlay{position:absolute;inset:0;width:100%;height:100%;z-index:19;pointer-events:none;contain:strict}
+body:not(.pjskModeActive) #gameView.phiStageIntro .phiNativeNoiseOverlay{animation:refCanvasIn .12s .82s linear both}
+body:not(.pjskModeActive) #gameView.phiStageOutro .phiNativeNoiseOverlay{animation:refFadeOut .3s .2s linear both}
+html.phiOriginalPause body:not(.pjskModeActive) #gameView .hudPause::before{background:var(--phi-pause-image) center/contain no-repeat;width:calc(var(--ref-u)*15.1);height:calc(var(--ref-y)*18.3)}
+html.phiOriginalPause body:not(.pjskModeActive) #gameView .hudPause::after{display:none}
