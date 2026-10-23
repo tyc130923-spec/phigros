@@ -4,7 +4,7 @@
   // Older cached HTML can request the new app before it knows about this small
   // dependency. Load it once so an update cannot strand an existing player.
   if(!globalThis.PhiPerformance)await new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='./js/performance-policy.js?v=4.0.1.2-input-4';
+    const script=document.createElement('script');script.src='./js/performance-policy.js?v=4.0.1.2-input-5';
     script.onload=resolve;script.onerror=()=>reject(Error('性能组件加载失败，请刷新页面'));document.head.appendChild(script);
   });
   let phiExportViewport=null;
@@ -26,10 +26,10 @@
    * Builder 与独立游戏均从同一份 Runtime 模板生成，避免版本漂移。
    */
   const PHI_VERSIONS = Object.freeze({
-    runtime: "4.0.1.2-input-4",
+    runtime: "4.0.1.2-input-5",
     parser: "9.0-native-sus",
     renderEngine: "38.3-safari-caption-baseline",
-    buildTimestamp: "2026-10-23T14:43:25Z",
+    buildTimestamp: "2026-10-23T14:56:48Z",
     coreSha256: "dcae237af6ee34b393b4ceea31605c87aaf0d0b737c95da89cc12e9cd5dbe677",
   });
   const PHI_SECURITY_LIMITS = Object.freeze({
@@ -8258,11 +8258,15 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.cadenceEma = 0; this.cadenceFloor=0; this.cadenceCandidate=0; this.cadenceCandidateCount=0;
     }
     observe(interval) {
-      if (!this.active || !(interval > 3.5 && interval < 40)) return;
-      if(!this.cadenceCandidate||interval<this.cadenceCandidate*.82||interval>this.cadenceCandidate*1.22){
-        this.cadenceCandidate=interval;this.cadenceCandidateCount=1;
-      }else{this.cadenceCandidate=this.cadenceCandidate*.8+interval*.2;this.cadenceCandidateCount++;}
-      if(this.cadenceCandidateCount>=8)this.cadenceFloor=this.cadenceFloor?Math.min(this.cadenceFloor,this.cadenceCandidate):this.cadenceCandidate;
+      if (!this.active || !Number.isFinite(interval) || interval <= 0) return;
+      if (interval > 3.5 && interval < 40) {
+        if(!this.cadenceCandidate||interval<this.cadenceCandidate*.82||interval>this.cadenceCandidate*1.22){
+          this.cadenceCandidate=interval;this.cadenceCandidateCount=1;
+        }else{this.cadenceCandidate=this.cadenceCandidate*.8+interval*.2;this.cadenceCandidateCount++;}
+        if(this.cadenceCandidateCount>=8)this.cadenceFloor=this.cadenceFloor?Math.min(this.cadenceFloor,this.cadenceCandidate):this.cadenceCandidate;
+      } else {
+        this.cadenceCandidate=0;this.cadenceCandidateCount=0;
+      }
       this.samples = Math.min(360, this.samples + 1);
       this.cadenceEma = this.cadenceEma
         ? this.cadenceEma * 0.92 + interval * 0.08
@@ -8279,7 +8283,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     }
     targetMs(fallback = FRAME_TARGET_MS) {
       const hz = this.measuredHz();
-      const measured=hz>=45?1000/hz:fallback;
+      const measured=hz>=45?1000/hz:(this.cadenceFloor||fallback);
       return this.cadenceFloor>0?Math.min(measured,this.cadenceFloor):measured;
     }
     stop() {
@@ -8353,7 +8357,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       }
     }
     frame(engine, interval, drawCost, workCost, now) {
-      if (interval > 0 && interval < 1000) {
+      if (Number.isFinite(interval) && interval > 0) {
         this.samples[this.index++ % this.samples.length] = interval;
         this.count = Math.min(this.count + 1, this.samples.length);
         this.max = Math.max(this.max * 0.995, interval);
@@ -15125,6 +15129,8 @@ function withTimeout(promise, ms, message = "操作超时") {
       const cadence=new HighRefreshController();cadence.start();
       for(let i=0;i<60;i++)cadence.observe(1000/110);
       assert(Math.abs(cadence.measuredHz()-110)<1e-8,"refresh meter rounded up the actual cadence");
+      for(let i=0;i<40;i++)cadence.observe(100);
+      assert(cadence.measuredHz()<15,"slow frames were omitted from the actual cadence");
     });
     await test("Hold handoff prefers live replacement contact", () => {
       const probe = Object.create(Engine.prototype), old = { id:-2, active:false, cancelled:true, ghostUntil:99 }, replacement = { id:-3, active:true };

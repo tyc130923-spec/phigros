@@ -1,6 +1,6 @@
 /* Code is versioned separately from unchanged media. Never cache partial audio. */
 'use strict';
-const APP_CACHE='tycphigros-app-input-4';
+const APP_CACHE='tycphigros-app-input-5';
 // Reuse the existing media store across this code-only release.
 const MEDIA_CACHE='tycphigros-4.0.1.2-stability-2';
 let nextMaintenance=0;
