@@ -25,7 +25,7 @@ class FakeAudio extends EventTarget {
 }
 
 test('begins after a short buffer, before the rest of the song arrives', async()=>{
-  const {PhiHostedMedia:media}=runtime();const audio=new FakeAudio(9);
+  const {PhiHostedMedia:media}=runtime();const audio=new FakeAudio(13);
   const stream=new media.Stream(audio,{url:'./music.m4a',duration:160});
   await stream.wait();assert(audio.ahead<audio.duration);stream.destroy();
 });
@@ -63,6 +63,29 @@ test('progressive artwork preserves the small image if the clear image fails',as
 });
 test('blocks cross-origin resource paths',async()=>{
   const {PhiHostedMedia:media}=runtime();await assert.rejects(media.bytes('https://elsewhere.test/music'));
+});
+
+test('a caller can cancel a recovery wait without destroying the stream',async()=>{
+  const {PhiHostedMedia:media}=runtime(),stream=new media.Stream(new FakeAudio(0),{url:'./music.m4a',duration:160});
+  const controller=new AbortController(),pending=stream.wait(12,{signal:controller.signal});
+  controller.abort();await assert.rejects(pending,{name:'AbortError'});
+  assert.equal(stream.controller.signal.aborted,false);stream.destroy();
+});
+test('a fast first chunk followed by a slow link lowers the measured download rate',()=>{
+  let now=0;const {PhiHostedMedia:media}=runtime({performance:{now:()=>now}});
+  const audio=new FakeAudio(4),stream=new media.Stream(audio,{url:'./music.m4a',duration:160});
+  now=100;stream.snapshot(12);now=10000;
+  const state=stream.snapshot(12);
+  assert.equal(state.rate,.4);assert(state.target>90);stream.destroy();
+});
+test('an artwork deadline aborts its fetch instead of blocking song startup',async()=>{
+  let aborted=false;
+  const {PhiHostedMedia:media}=runtime({fetch:(_url,{signal})=>new Promise((resolve,reject)=>{
+    signal.addEventListener('abort',()=>{aborted=true;reject(new DOMException('cancel','AbortError'));});
+  }),PhiHostedManifest:{artwork:{cover:{stages:[{url:'./tiny.jpg'},{url:'./medium.jpg'}]}}}});
+  const controller=new AbortController();
+  const pending=media.artwork('cover',{fromStage:1,signal:controller.signal});
+  controller.abort();await pending;assert.equal(aborted,true);
 });
 
 test('opening cues follow the music clock, remain clear after looping, and stop on exit',async()=>{

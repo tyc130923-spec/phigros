@@ -20,7 +20,7 @@
    * Builder 与独立游戏均从同一份 Runtime 模板生成，避免版本漂移。
    */
   const PHI_VERSIONS = Object.freeze({
-    runtime: "4.0.1.2-progressive-media",
+    runtime: "4.0.1.2-stability-2",
     parser: "9.0-native-sus",
     renderEngine: "38.3-safari-caption-baseline",
     buildTimestamp: "2026-10-23T09:40:00Z",
@@ -221,7 +221,7 @@
     APPLE_HEAVY_CANVAS_PIXELS = APPLE_120_CANVAS_PIXELS,
     APPLE_120_START_QUALITY = 1.0,
     APPLE_HEAVY_CHART_START_QUALITY = 1.0,
-    FROSTED_RASTER_MAX_SIDE = 8192,
+    FROSTED_RASTER_MAX_SIDE = 1536,
     APPLE_EFFECT_RASTER_SCALE = 1,
     MAX_RENDER_DPR = 8,
     MIN_RENDER_DPR = 1.0,
@@ -6034,7 +6034,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     if (!pending) {
       pending = (async () => {
         if (globalThis.PhiHostedMedia) return PhiHostedMedia.bytes(relativePath, {onProgress:(done,total)=>{
-          if (!$('#loadingView')?.classList.contains('hidden')) setLoadingStatus(total ? `谱面 ${Math.round(done/total*100)}%` : `已读取 ${Math.ceil(done/1024)} KB`);
+          if (!$('#loadingView')?.classList.contains('hidden')) setLoadingStatus(total ? `谱面 ${Math.min(100,Math.round(done/total*100))}%` : `已读取 ${Math.ceil(done/1024)} KB`);
         }});
         const response = await fetch(url.href, { credentials:'same-origin' });
         if (!response.ok) throw new Error('资源加载失败：' + relativePath + '（HTTP ' + response.status + '）');
@@ -8167,7 +8167,7 @@ function withTimeout(promise, ms, message = "操作超时") {
           const vw=Number.isFinite(Number(viewportW))?Math.max(1,Number(viewportW)):16,
             vh=Number.isFinite(Number(viewportH))?Math.max(1,Number(viewportH)):9,
             side=Number.isFinite(Number(maxSide))?Math.max(96,Math.min(8192,Number(maxSide))):2048,
-            aspect=Math.max(.5,vw/vh),tw=Math.max(96,Math.round(side)),th=Math.max(72,Math.round(tw/aspect)),
+            aspect=Math.max(.5,vw/vh),tw=Math.max(96,Math.round(Math.min(iw,side))),th=Math.max(72,Math.round(tw/aspect)),
             canvas=new OffscreenCanvas(tw,th),ctx=canvas.getContext('2d',{alpha:false,willReadFrequently:true});
           if(!ctx)throw new Error('无法建立后台磨砂画布');
           const sourceAspect=iw/ih;let sx=0,sy=0,sw=iw,sh=ih;
@@ -8711,9 +8711,8 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.packageNoteScale = clamp(Number(record?.meta?.noteScale ?? 1) || 1, 0.05, 8);
       this.customHitSounds = new Map();
       this.canvas = $("#gameCanvas");
-      // Keep the surface transparent so a WebKit image-decode failure cannot hide
-      // the valid artwork below. `desynchronized` requests the lowest-latency
-      // Canvas path where implemented; WebKit may safely ignore the hint.
+      // Present a complete frame through the compositor. Front-buffer rendering
+      // can expose clearRect() before the notes are drawn and visibly flash.
       this.canvas.style.opacity = "";
       this.canvas.style.display = "block";
       this.canvas.style.background = "transparent";
@@ -8721,10 +8720,10 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.ctx =
         this.canvas.getContext("2d", {
           alpha: true,
-          desynchronized: true,
+          desynchronized: false,
           willReadFrequently: false,
           colorSpace: "srgb",
-        }) || this.canvas.getContext("2d", { alpha: true, desynchronized: true, colorSpace: "srgb" })
+        }) || this.canvas.getContext("2d", { alpha: true, desynchronized: false, colorSpace: "srgb" })
           || this.canvas.getContext("2d", { alpha: true });
       this.canvasHasAlpha = this.ctx?.getContextAttributes?.().alpha !== false;
       this.isAppleTouch = isAppleTouchDevice();
@@ -8758,6 +8757,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.audioURL = "";
       this.musicBuffer = null;
       this.streamSession = preparedStream;
+      this.streamBuffering=false;this.streamRecoveryPending=false;this.streamRecoveryAbort=null;
       this.musicSource = null;
       this.musicGain = null;
       this.musicUsingWebAudio = false;
@@ -9201,39 +9201,64 @@ function withTimeout(promise, ms, message = "操作超时") {
       return this.audio;
     }
     async recoverStreamBuffer(){
-      if(!this.streamSession||!this.running||this.paused||this.starting||this.resumePending||this.musicDuration()-this.musicCurrentTime()<.3)return;
-      const session=this.streamSession;
-      this.pause('buffering');
-      const panel=$('#pausePanel');panel.classList.add('streamBuffering');
-      const status=$('#streamBufferStatus');if(status)status.textContent='正在缓冲音乐…';
-      session.onProgress=state=>{if(status)status.textContent=`正在缓冲音乐… ${state.ahead.toFixed(1)} 秒`;};
+      if(!this.streamSession||!this.running||this.paused||this.starting||this.resumePending||this.streamRecoveryPending||this.musicDuration()-this.musicCurrentTime()<.3)return;
+      const session=this.streamSession,token=this.transitionToken,status=$('#streamBufferStatus'),cancellation=new AbortController();
+      const active=()=>this.running&&!this.paused&&!this.starting&&!this.resumePending&&this.transitionToken===token;
+      this.streamRecoveryPending=true;this.streamRecoveryAbort=cancellation;
+      let began=0;
       try{
-        await session.wait(12);
-        if(this.running&&this.paused&&this.pauseReason==='buffering'&&!document.hidden)await this.resume();
-      }catch(error){if(error.name!=='AbortError')toast(error.message,true,6500);}
-      finally{session.onProgress=null;panel.classList.remove('streamBuffering');}
+        // A seek or decoder hiccup can emit waiting with playable audio still in
+        // the buffer. Do not interrupt a chord for a transient notification.
+        await sleep(180);
+        if(!active()||document.hidden||this.audio.readyState>=3||PhiHostedMedia.bufferedAhead(this.audio)>.25)return;
+        this.streamBuffering=true;began=performance.now();
+        this.cancelLoop();this.pauseMusic();this.syncClock(true);this.draw(this.time);
+        if(status){status.textContent='正在缓冲音乐…';status.classList.remove('hidden');}
+        session.onProgress=state=>{if(active()&&status)status.textContent=`正在缓冲音乐… ${state.ahead.toFixed(1)} 秒`;};
+        this.streamStalls=(this.streamStalls||0)+1;
+        await session.wait(Math.min(30,12+this.streamStalls*4),{signal:cancellation.signal});
+        if(!active()||document.hidden)return;
+        // Keep the same media position and all live contacts. In particular this
+        // must not use manual pause/resume, which clears fingers and seeks again.
+        await withTimeout(this.audio.play(),5000,'音乐恢复播放未响应');
+        if(!active()||document.hidden){if(this.paused||!this.running)this.audio.pause();return;}
+        this.rebaseBufferedInput(began,performance.now());
+        this.syncClock(true);this.visualTime=NaN;this.lastFramePerf=0;
+      }catch(error){
+        if(error.name!=='AbortError'&&active()){
+          this.pause('buffering-error');toast(error.message,true,6500);
+        }
+      }finally{
+        session.onProgress=null;this.streamRecoveryPending=false;this.streamBuffering=false;this.streamRecoveryAbort=null;
+        if(engine===this&&status)status.classList.add('hidden');
+        if(active()&&!document.hidden)this.scheduleLoop();
+      }
     }
-    async upgradeHostedArtwork(){
+    rebaseBufferedInput(began,now){
+      const from=began/1000,to=now/1000;
+      for(const {n} of this.activeHolds)
+        if(Number.isFinite(n.releaseAt))n.releaseAt+=to-Math.max(from,Math.min(to,n.releaseAt));
+      for(const {n} of this.pendingJudge||[])
+        if(Number.isFinite(n.dragArmUntil)&&n.dragArmUntil>from)n.dragArmUntil+=to-from;
+      for(const p of this.pointer.values()){
+        if(p.ghostUntil>from)p.ghostUntil+=to-from;
+        p.startX=p.lastX=p.x;p.startY=p.lastY=p.y;p.startT=p.lastT=now;p.speed=0;
+      }
+    }
+    async prepareHostedArtwork(){
       if(!this.record.artworkAsset||this._offlineExport||!globalThis.PhiHostedMedia)return;
-      const active=()=>engine===this&&!!this.record&&!this.streamSession?.controller.signal.aborted;
-      await PhiHostedMedia.artwork(this.record.artworkAsset,{fromStage:1,active,onStage:async(blob,stage)=>{
-        let bgURL='',bakedURL='';
-        try{
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),350);
+      const active=()=>engine===this&&!this.running&&!controller.signal.aborted;
+      try{
+        // The 640px stage is ample for a blurred backdrop. Freeze the selected
+        // texture before init; no decode, blur worker or image swap during notes.
+        await PhiHostedMedia.artwork(this.record.artworkAsset,{fromStage:1,maxStage:1,signal:controller.signal,active,onStage:(blob,stage)=>{
           if(!active())return;
-          bgURL=URL.createObjectURL(blob);const image=await imageFromPersistentURL(bgURL);
-          const dim=this.record.meta?.backgroundDim??.6,w=this.surfaceW||innerWidth,h=this.surfaceH||innerHeight;
-          const baked=this.chart.kind==='pjsk'?await createPjskBackgroundBlob(image,w,h,dim):await createStaticFrostedBlobThreaded(blob,w,h,dim);
-          bakedURL=URL.createObjectURL(baked);const bakedImage=await imageFromPersistentURL(bakedURL);
-          if(!active())return;
-          const oldBG=this.bgURL,oldBaked=this.renderBgURL;
-          this.record.bgBlob=blob;this.bgURL=bgURL;this.bgImage=image;this.renderBgURL=bakedURL;this.renderBgImage=bakedImage;
-          bgURL=bakedURL='';this.mountGameplayBackground(false);
-          $('#gameView').dataset.artworkStage=String(stage);
-          if(!$('#loadingView').classList.contains('hidden'))setLoadingArtwork(blob);
-          requestAnimationFrame(()=>{if(oldBG)URL.revokeObjectURL(oldBG);if(oldBaked)URL.revokeObjectURL(oldBaked);});
-        }catch(error){Diagnostics.warn('Background.progressive',error.message);}
-        finally{if(bgURL)URL.revokeObjectURL(bgURL);if(bakedURL)URL.revokeObjectURL(bakedURL);}
-      }});
+          if(this.bgURL)URL.revokeObjectURL(this.bgURL);
+          this.record.bgBlob=blob;this.bgURL=URL.createObjectURL(blob);
+          $('#gameView').dataset.artworkStage=String(stage);setLoadingArtwork(blob);
+        }});
+      }finally{clearTimeout(timer);controller.abort();}
     }
     musicDuration() {
       return this.musicUsingWebAudio
@@ -9277,9 +9302,10 @@ function withTimeout(promise, ms, message = "操作超时") {
           }catch(error){Diagnostics.warn('AudioEngine.stream',error.message);}
         }
         try {
-          this.audio.currentTime = clamp(offset, 0, this.musicDuration());
+          const position=clamp(offset,0,this.musicDuration());
+          if(Math.abs(this.audio.currentTime-position)>.025)this.audio.currentTime=position;
         } catch (error) { Diagnostics.warn("Runtime.recoverable", error?.message || String(error)); }
-        if(this.streamSession)await this.streamSession.wait(8);
+        if(this.streamSession)await this.streamSession.wait(12);
         await withTimeout(this.audio.play(),5000,'Safari 音乐播放未响应');
         return;
       }
@@ -9460,8 +9486,6 @@ function withTimeout(promise, ms, message = "操作超时") {
       if (safeUrl) {
         imageEl.classList.remove("hiddenBackground");
         if (force || imageEl.getAttribute("src") !== safeUrl) {
-          imageEl.removeAttribute("src");
-          void imageEl.offsetWidth;
           imageEl.setAttribute("src", safeUrl);
         }
       } else {
@@ -9735,7 +9759,7 @@ function withTimeout(promise, ms, message = "操作超时") {
             setLoadingStatus(`音乐已缓冲 ${state.ahead.toFixed(1)} 秒 · 目标 ${Math.ceil(state.target)} 秒`);
             const status=$('#streamBufferStatus');if(status)status.textContent=`正在缓冲音乐… ${state.ahead.toFixed(1)} 秒`;
           };
-          await this.streamSession.wait(8);
+          await this.streamSession.wait(12);
           this.streamSession.onProgress=null;
           this.bound.streamWaiting=()=>this.recoverStreamBuffer();
           this.audio.addEventListener('waiting',this.bound.streamWaiting);
@@ -10457,6 +10481,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.scheduleLoop();
     }
     reset() {
+      this.streamRecoveryAbort?.abort();this.streamBuffering=false;
       clearTimeout(this.referenceFinishTimer);this.referenceFinishing=false;
       $("#gameView")?.classList.remove("phiStageIntro","phiStageOutro");
       keyboardInput?.clear("engine.reset");
@@ -10523,6 +10548,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.updateHUD();
     }
     stop(reason = "stop") {
+      this.streamRecoveryAbort?.abort();this.streamBuffering=false;$('#streamBufferStatus')?.classList.add('hidden');
       clearTimeout(this.referenceFinishTimer);this.referenceFinishing=false;
       $("#gameView")?.classList.remove("phiStageIntro","phiStageOutro");
       keyboardInput?.clear("engine.stop");
@@ -10680,6 +10706,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       Diagnostics.info("GameState.lifecycle", "页面已返回前台，等待用户继续", { reason, offset: this.musicCurrentTime() });
     }
     pause(reason = "manual") {
+      this.streamRecoveryAbort?.abort();this.streamBuffering=false;$('#streamBufferStatus')?.classList.add('hidden');
       keyboardInput?.clear("engine.pause");
       if (!this.running) return;
       if (this.paused && !this.resumePending && !this.starting) return;
@@ -10778,7 +10805,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       if (this.running) this.scheduleViewportReflow(true);
     }
     scheduleLoop() {
-      if (!this.running || this.paused || this.raf) return;
+      if (!this.running || this.paused || this.streamBuffering || this.raf) return;
       this.raf = requestAnimationFrame(this.bound.loop);
     }
     adaptPerformance(workCost, now, frameInterval) {
@@ -10900,7 +10927,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     }
     loop(now = performance.now()) {
       this.raf = 0;
-      if (!this.running || this.paused) return;
+      if (!this.running || this.paused || this.streamBuffering) return;
       this.frameNow = now;
       if (this.pendingResolution) {
         // Never reallocate the backing store on top of a judgement burst. Wait
@@ -11930,6 +11957,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       typeMask, x, y, out = this.candidateScratch, eventAudioTime = NaN,
       fromX = NaN, fromY = NaN,
     ) {
+      if(this.streamBuffering)return null;
       const blockT=Number.isFinite(eventAudioTime)?eventAudioTime:this.time;
       if(nativeBlockTouchBlocked(this,x,y,blockT))return null;
       if(Number.isFinite(fromX)&&nativeBlockTouchBlocked(this,fromX,fromY,blockT)){fromX=NaN;fromY=NaN;}
@@ -12056,6 +12084,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       return false;
     }
     tryTap(pid, x, y, eventAudioTime = NaN) {
+      if(this.streamBuffering)return;
       if(nativeBlockTouchBlocked(this,x,y,Number.isFinite(eventAudioTime)?eventAudioTime:this.time,pid))return ;
       if(this.chart.kind === "pjsk")return pjskInput(this,"tap",x,y,eventAudioTime,NaN,NaN,pid);
       let c = this.findCandidateMask((1 << 1) | (1 << 3), x, y, this.candidateScratch, eventAudioTime);
@@ -12083,6 +12112,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       }
     }
     tryArmDrag(pid, x, y, eventAudioTime = NaN, fromX = NaN, fromY = NaN) {
+      if(this.streamBuffering)return false;
       if(nativeBlockTouchBlocked(this,x,y,Number.isFinite(eventAudioTime)?eventAudioTime:this.time,pid))return false;
       if(this.chart.kind === "pjsk")return false;
       const c = this.findCandidateMask(
@@ -12103,6 +12133,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       return true;
     }
     tryFlick(pid, x, y, eventAudioTime = NaN, fromX = NaN, fromY = NaN) {
+      if(this.streamBuffering)return false;
       if(nativeBlockTouchBlocked(this,x,y,Number.isFinite(eventAudioTime)?eventAudioTime:this.time,pid))return false;
       if(this.chart.kind === "pjsk")return pjskInput(this,"flick",x,y,eventAudioTime,fromX,fromY,pid);
       const c = this.findCandidateMask(
@@ -12121,6 +12152,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     }
 
     keyboardCandidateMask(typeMask, dueOnly = false, out = this.keyboardCandidateScratch) {
+      if(this.streamBuffering)return null;
       const visualT = this.time,
         t = visualT + judgeTimingLead + clamp((Number(this.clockDrift) || 0) * 0.28, -0.012, 0.012),
         span = Math.max(BAD, DRAG_LATE_WINDOW, FLICK_ARM_EARLY, FLICK_ARM_LATE) + Math.max(0.18, specialJudgeDelay + 0.08),
@@ -12169,6 +12201,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       return out;
     }
     keyboardDown(code) {
+      if(this.streamBuffering)return;
       if(this.chart.kind === "pjsk"){
         const k=SEKAI_KEYS.indexOf(code),f=SEKAI_FLICK_KEYS.indexOf(code);if(k<0&&f<0)return;
         this.usedKeyboard=true;const s=pjskStageGeometry(this),x=s.cx-s.bottomHalf+((k>=0?k:f)+.5)*s.bottomHalf*2/6;
@@ -13747,6 +13780,8 @@ function withTimeout(promise, ms, message = "操作超时") {
       await nextVisualCommit();
       // Fill caption slots before initialization/prewarming can snapshot HUD.
       applyGameMetadata(rec);
+      await engine.prepareHostedArtwork();
+      assertSongLoad(loadToken);
       await engine.init();
       assertSongLoad(loadToken);
       $("#libraryView").classList.add("hidden");
@@ -13789,7 +13824,6 @@ function withTimeout(promise, ms, message = "操作超时") {
         performanceMonitor.setGameActive(false);return;
       }
       await engine.start(false);
-      engine.upgradeHostedArtwork().catch(error=>Diagnostics.warn('Background.progressive',error.message));
     } catch (e) {
       if(e.name==='AbortError'||loadToken!==songLoadToken)return;
       performanceMonitor.setGameActive(false);
@@ -14407,7 +14441,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     if(!canvas){
       canvas=e.nativeNoiseOverlay=document.createElement('canvas');canvas.className='phiNativeNoiseOverlay';
       canvas.setAttribute('aria-hidden','true');e.canvas.parentElement.appendChild(canvas);
-      c=e.nativeNoiseOverlayCtx=canvas.getContext('2d',{alpha:true,desynchronized:true});
+      c=e.nativeNoiseOverlayCtx=canvas.getContext('2d',{alpha:true,desynchronized:false});
     }
     if(canvas.width!==e.canvas.width||canvas.height!==e.canvas.height){canvas.width=e.canvas.width;canvas.height=e.canvas.height;e.nativeNoiseHudCache=null;}
     c.setTransform(1,0,0,1,0,0);c.clearRect(0,0,canvas.width,canvas.height);

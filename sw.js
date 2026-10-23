@@ -1,6 +1,6 @@
 /* Cache only successful same-origin resources; preserve native audio Range I/O. */
 'use strict';
-const CACHE='tycphigros-4.0.1.2-media-1';
+const CACHE='tycphigros-4.0.1.2-stability-2';
 self.addEventListener('install',event=>event.waitUntil(self.skipWaiting()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
   for(const key of await caches.keys())if(key.startsWith('tycphigros-')&&key!==CACHE)await caches.delete(key);

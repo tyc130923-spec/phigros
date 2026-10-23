@@ -10,12 +10,24 @@
     if (value.origin !== location.origin || !/^https?:$/.test(value.protocol)) throw Error('资源必须来自本站');
     return value.href;
   }
-  async function bytes(path, { onProgress, priority = 'auto' } = {}) {
+  function abortable(promise,signal){
+    if(!signal)return promise;
+    return new Promise((resolve,reject)=>{
+      const abort=()=>reject(new DOMException('资源读取已取消','AbortError'));
+      if(signal.aborted)return abort();
+      signal.addEventListener('abort',abort,{once:true});
+      promise.then(resolve,reject).finally(()=>signal.removeEventListener('abort',abort));
+    });
+  }
+  async function bytes(path, { onProgress, priority = 'auto', signal } = {}) {
+    if(signal?.aborted)throw new DOMException('资源读取已取消','AbortError');
     const href = url(path);
-    if (downloads.has(href)) return downloads.get(href).promise;
+    if (downloads.has(href)) return abortable(downloads.get(href).promise,signal);
     const item = { size: 0, promise: null };
     item.promise = (async () => {
       const controller = new AbortController();
+      const abort=()=>controller.abort();
+      signal?.addEventListener('abort',abort,{once:true});
       let timeout;
       const renew = () => { clearTimeout(timeout); timeout = setTimeout(() => controller.abort(), 45000); };
       renew();
@@ -45,26 +57,28 @@
         return result;
       } catch (error) {
         downloads.delete(href);
+        if(signal?.aborted)throw new DOMException('资源读取已取消','AbortError');
         if (controller.signal.aborted) throw Error('网络暂时没有响应，请返回选歌后重试');
         throw error;
-      } finally { clearTimeout(timeout); }
+      } finally { clearTimeout(timeout);signal?.removeEventListener('abort',abort); }
     })();
     downloads.set(href, item);
-    return item.promise;
+    return abortable(item.promise,signal);
   }
-  async function artwork(asset, { onStage, active = () => true, maxStage = 2, fromStage = 0 } = {}) {
+  async function artwork(asset, { onStage, active = () => true, maxStage = 2, fromStage = 0, signal } = {}) {
     const spec = manifest.artwork[asset];
     if (!spec) return null;
     let last = null;
     for (let stage = fromStage; stage <= Math.min(maxStage, spec.stages.length - 1); stage++) {
       if (!active()) break;
       try {
-        const data = await bytes(spec.stages[stage].url, { priority: stage === 0 ? 'high' : 'low' });
+        const data = await bytes(spec.stages[stage].url, { priority: stage === 0 ? 'high' : 'low',signal });
         const blob = new Blob([data], { type: 'image/jpeg' });
         if (!active()) break;
         last = blob;
         await onStage?.(blob, stage);
       } catch (error) {
+        if(error.name==='AbortError')break;
         // A failed clear image must never hide the already visible small image.
         if (stage === 0) throw error;
         console.warn('[Artwork]', error.message);
@@ -88,7 +102,7 @@
     constructor(audio, spec, onProgress) {
       this.audio = audio; this.spec = spec; this.onProgress = onProgress;
       this.controller = new AbortController(); this.started = performance.now();
-      this.lastBufferEnd=0;this.lastBufferAt=this.started;this.downloadRate=0;this.initialReady=false;
+      this.lastBufferEnd=0;this.downloadRate=0;this.initialReady=false;
       audio.pause(); audio.loop = false; audio.muted = false; audio.preload = 'auto';
       audio.setAttribute('playsinline', '');
       audio.src = url(spec.url); audio.load();
@@ -97,19 +111,16 @@
       const at = Number(this.audio.currentTime) || 0;
       const duration = Number.isFinite(this.audio.duration) && this.audio.duration > 0 ? this.audio.duration : this.spec.duration;
       const ahead = bufferedAhead(this.audio, at), elapsed = Math.max(.01, (performance.now() - this.started) / 1000);
-      const end=ahead+at,now=performance.now();
-      if(end>this.lastBufferEnd+.05){
-        const sample=(end-this.lastBufferEnd)/Math.max(.01,(now-this.lastBufferAt)/1000);
-        this.downloadRate=this.downloadRate?this.downloadRate*.75+sample*.25:sample;
-        this.lastBufferEnd=end;this.lastBufferAt=now;
-      }
-      const rate=this.downloadRate;
+      this.lastBufferEnd=Math.max(this.lastBufferEnd,ahead+at);
+      // Initial browser bursts are not sustained throughput. Include quiet time
+      // in the estimate, otherwise a fast first chunk hides an under-speed link.
+      const rate=this.downloadRate=this.lastBufferEnd/elapsed;
       const remaining = Math.max(0, duration - at);
       const target = this.initialReady?Math.min(remaining,minimum):bufferTarget(remaining, rate, elapsed, minimum);
       return { ahead, target, duration, rate, complete: ahead >= remaining - .1,
         ready: this.audio.readyState >= 3 && (ahead >= target || ahead >= remaining - .1) };
     }
-    wait(minimum = 8) {
+    wait(minimum = 12, {signal: externalSignal} = {}) {
       const audio = this.audio, signal = this.controller.signal;
       return new Promise((resolve, reject) => {
         let timer, lastAhead = -1, lastProgress = performance.now();
@@ -117,11 +128,12 @@
           clearInterval(timer);
           for (const event of ['progress', 'loadedmetadata', 'canplay', 'error']) audio.removeEventListener(event, check);
           signal.removeEventListener('abort', abort);
+          externalSignal?.removeEventListener('abort',abort);
           error ? reject(error) : resolve(audio);
         };
         const abort = () => finish(new DOMException('已返回选歌', 'AbortError'));
         const check = () => {
-          if (signal.aborted) return abort();
+          if (signal.aborted||externalSignal?.aborted) return abort();
           if (audio.error) return finish(Error('音乐加载失败，请返回选歌重试'));
           const state = this.snapshot(minimum);
           if (state.ahead > lastAhead + .1) { lastProgress = performance.now(); lastAhead = state.ahead; }
@@ -131,6 +143,7 @@
         };
         for (const event of ['progress', 'loadedmetadata', 'canplay', 'error']) audio.addEventListener(event, check);
         signal.addEventListener('abort', abort, { once: true });
+        externalSignal?.addEventListener('abort',abort,{once:true});
         timer = setInterval(check, 120); check();
       });
     }

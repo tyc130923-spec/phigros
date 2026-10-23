@@ -22,7 +22,6 @@
 #loadingBack{position:absolute;z-index:20;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));border:1px solid #fff5;border-radius:3px;background:#0a111a88;color:#fff;padding:8px 12px;font:inherit;cursor:pointer}
 #loadingProgress{position:absolute;left:15%;right:15%;bottom:6%;text-align:center;color:#fffd;font:12px Saira,"PingFang SC",sans-serif;letter-spacing:.04em;text-shadow:0 1px 3px #000}
 #loadingView.loadingExit .loadingCard{animation-duration:.3s}
-#streamBufferStatus{display:none;position:absolute;z-index:30;left:10%;right:10%;top:17%;color:#fff;text-align:center;font-size:18px}
-.streamBuffering #streamBufferStatus{display:block}
+#streamBufferStatus{position:absolute;z-index:30;left:50%;bottom:12%;transform:translateX(-50%);padding:9px 16px;border-radius:4px;background:#101923dc;color:#fff;text-align:center;font-size:14px;pointer-events:none}
 .cardBg,.libraryFocusArt,.libraryBackdropImage,#gameBgImage{transition:opacity .25s ease}
 @media(prefers-reduced-motion:reduce){#refHome .openingTitle{filter:none}.cardBg,.libraryFocusArt,.libraryBackdropImage,#gameBgImage{transition:none}}
