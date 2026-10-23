@@ -1,0 +1,8 @@
+name: Phigros 原始材质 3.10.0
+author: Pigeon Games
+originalPhigros: true
+preserveTextureRect: true
+hitFx: [6,5]
+hitFxDuration: 0.5
+hitFxScale: 1
+holdHighlightPPU: 97.52066040039062

@@ -1,0 +1,28 @@
+/* Live title elements replace the text baked into the older cover image. */
+#refHome{background:#000;overflow:hidden;isolation:isolate;--opening-reveal:0;--opening-prompt:1;--opening-cue:1}
+.openingStudio,.openingWarning,.openingTitle{position:absolute;inset:0;opacity:0;pointer-events:none}
+#refHome[data-stage="studio"] .openingStudio,#refHome[data-stage="warning"] .openingWarning{opacity:var(--opening-cue)}
+#refHome[data-stage="title"] .openingTitle{opacity:var(--opening-reveal);filter:blur(var(--opening-blur,0px))}
+.openingStudio{display:grid;place-items:center;background:#000}
+.openingStudio img{width:69%;height:auto;transform:translateY(-1.5%);user-select:none}
+.openingWarning{color:#d5d5d5;background:#000;font-family:Arial,"PingFang SC","Microsoft YaHei",sans-serif}
+.openingWarning svg{position:absolute;top:24.5%;left:47%;width:6%;height:8%;fill:none;stroke:currentColor;stroke-width:1.8}
+.openingWarning h2{position:absolute;top:35.6%;left:0;width:100%;margin:0;text-align:center;font-size:clamp(12px,1.9vw,25px);font-weight:400}
+.openingWarningText{position:absolute;left:11.2%;right:11.2%;top:47.5%;font-size:clamp(9px,1.42vw,20px);line-height:1.9}
+.openingWarning p{text-indent:2em;margin:0}
+.openingWarning p+p{margin-top:.5em}
+.openingTitle{background-image:linear-gradient(90deg,transparent 46%,#151a20 59%,#101419 100%),var(--ref-home-image);background-position:center;background-size:cover}
+.openingLogo{position:absolute;left:59.3%;top:42.1%;width:34.2%;height:auto;mix-blend-mode:screen;filter:contrast(1.5);user-select:none}
+.openingVersion{position:absolute;right:8.2%;top:39.7%;font-family:Saira,Arial,sans-serif;font-size:clamp(9px,1.5vw,21px);font-weight:400;color:#9a9ca3}
+#refHome .refHomeStart{left:69.2%;top:56.5%;width:25%;height:7%;font-family:"PingFang SC","Microsoft YaHei",sans-serif;font-size:clamp(12px,2.34vw,30px);font-weight:400;letter-spacing:.24em;color:#f4f8f9;opacity:var(--opening-prompt);white-space:nowrap;cursor:pointer;pointer-events:auto}
+#openingParticles{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.openingLogo,.openingVersion,.refHomeStart{z-index:2}
+#openingSound{position:absolute;right:4%;bottom:5%;z-index:4;padding:8px 14px;border:1px solid #a4b6be55;border-radius:4px;background:#0d151fcc;color:#e4f5fa;font-size:clamp(11px,1.65vw,18px);cursor:pointer}
+#openingSound[hidden]{display:none}
+#loadingBack{position:absolute;z-index:20;left:max(18px,env(safe-area-inset-left));top:max(18px,env(safe-area-inset-top));border:1px solid #fff5;border-radius:3px;background:#0a111a88;color:#fff;padding:8px 12px;font:inherit;cursor:pointer}
+#loadingProgress{position:absolute;left:15%;right:15%;bottom:6%;text-align:center;color:#fffd;font:12px Saira,"PingFang SC",sans-serif;letter-spacing:.04em;text-shadow:0 1px 3px #000}
+#loadingView.loadingExit .loadingCard{animation-duration:.3s}
+#streamBufferStatus{display:none;position:absolute;z-index:30;left:10%;right:10%;top:17%;color:#fff;text-align:center;font-size:18px}
+.streamBuffering #streamBufferStatus{display:block}
+.cardBg,.libraryFocusArt,.libraryBackdropImage,#gameBgImage{transition:opacity .25s ease}
+@media(prefers-reduced-motion:reduce){#refHome .openingTitle{filter:none}.cardBg,.libraryFocusArt,.libraryBackdropImage,#gameBgImage{transition:none}}
