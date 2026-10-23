@@ -1,49 +1,7 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const fs=require('node:fs');
-const vm=require('node:vm');
+const {fixture}=require('./helpers/engine.cjs');
 
-// Exercise the shipped Engine methods without initializing the app or a GPU.
-const source=fs.readFileSync('js/app.js','utf8');
-const engineSource=source.slice(source.indexOf('  class Engine {'),source.indexOf('  let resultArtworkURL'));
-class ElementMock { closest(){return null;} }
-function fixture(overrides={}){
-  let now=1000;
-  const elements=new Map();
-  const node=id=>{
-    if(!elements.has(id)){
-      const classes=new Set(['hidden']);
-      elements.set(id,{dataset:{},style:{},classList:{add:x=>classes.add(x),remove:x=>classes.delete(x),toggle(){},contains:x=>classes.has(x)}});
-    }
-    return elements.get(id);
-  };
-  const context=vm.createContext({console,AbortController,DOMException,Blob,URL,setTimeout,clearTimeout,
-    performance:{now:()=>now},document:{hidden:false},Element:ElementMock,
-    $:node,engine:null,sleep:async()=>{},withTimeout:p=>p,
-    PhiHostedMedia:{bufferedAhead:audio=>audio.ahead},
-    clamp:(v,a,b)=>Math.max(a,Math.min(b,v)),touchSensitivity:1,
-    FLICK_SPEED:138,FLICK_TRAVEL:5.5,FLICK_REARM_MS:58,FLICK_REARM_TRAVEL_GAIN:.42,
-    MULTITOUCH_CANCEL_GRACE:.38,POINTER_DUPLICATE_EPS_MS:.08,POINTER_DUPLICATE_EPS_PX:.04,
-    Diagnostics:{warn(){}},toast:()=>{},...overrides});
-  vm.runInContext(engineSource+'\nglobalThis.Engine=Engine;',context);
-  const probe=Object.create(context.Engine.prototype);
-  Object.assign(probe,{running:true,paused:false,starting:false,resumePending:false,autoplay:false,
-    transitionToken:1,useNativeTouchInput:true,pointer:new Map(),pointerPool:[],activeHolds:new Set(),
-    nativeTouchBlocked:new Set(),nativeTouchLiveIds:new Set(),nativeTouchChangedIds:new Set(),
-    inputRect:{left:0,top:0,width:1000,height:500},viewX:0,viewY:0,viewScale:1,w:1000,h:500,
-    pointScratchA:{},pointScratchB:{},chart:{kind:'pgr'},streamBuffering:false,
-    audio:{ahead:0,readyState:2,currentTime:40,paused:false,playCalls:0,play(){this.playCalls++;this.paused=false;return Promise.resolve();}},
-    musicDuration:()=>160,musicCurrentTime:()=>40,eventAudioTime:()=>40,
-    cancelLoop(){this.cancelledLoops=(this.cancelledLoops||0)+1;},pauseMusic(){this.audio.paused=true;},
-    syncClock(){},draw(){},scheduleLoop(){this.scheduledLoops=(this.scheduledLoops||0)+1;},
-    pause(){throw Error('buffer recovery must not call manual pause');},
-    resume(){throw Error('buffer recovery must not call countdown resume');},
-    clearPointerStates(){throw Error('buffer recovery must preserve contacts');},
-    tryTap(){},tryArmDrag(){},armDragAlongPath(){},armFlickAlongPath(){}});
-  Object.defineProperty(probe,'time',{value:40,writable:true});
-  context.engine=probe;
-  return {probe,context,node,setNow:value=>now=value};
-}
 function deferred(){let resolve,reject;const promise=new Promise((a,b)=>{resolve=a;reject=b;});return {promise,resolve,reject};}
 
 test('a transient waiting event with playable audio never interrupts input',async()=>{
@@ -126,8 +84,10 @@ test('buffer duration does not consume existing Hold release or cancellation gra
   const {probe}=fixture();
   probe.activeHolds.add({n:{releaseAt:.9}});
   probe.pointer.set(-2,{x:10,y:20,ghostUntil:1.3,speed:200});
+  probe.pendingJudge=new Set([{n:{inputMissDeadline:1032}}]);
   probe.rebaseBufferedInput(1000,6000);
   assert.equal([...probe.activeHolds][0].n.releaseAt,5.9);
   assert.equal(probe.pointer.get(-2).ghostUntil,6.3);
   assert.equal(probe.pointer.get(-2).speed,0);
+  assert.equal([...probe.pendingJudge][0].n.inputMissDeadline,6032);
 });

@@ -3,8 +3,9 @@
   'use strict';
   const cues = globalThis.PhiHostedManifest.opening;
   const home = document.getElementById('refHome');
-  const audio = new Audio(new URL(cues.audio, document.baseURI).href);
-  audio.loop = true; audio.preload = 'auto'; audio.setAttribute('playsinline', '');
+  const audioURL=new URL(cues.audio,document.baseURI).href;
+  const audio = new Audio(audioURL);
+  audio.loop = true; audio.preload = 'metadata'; audio.setAttribute('playsinline', '');
   audio.id='openingAudio';audio.hidden=true;home.appendChild(audio);
   const canvas = document.getElementById('openingParticles'), ctx = canvas.getContext('2d');
   const sound = document.getElementById('openingSound');
@@ -63,11 +64,19 @@
     animate();
   }
   function show(initial=false) {
+    if(!audio.getAttribute?.('src'))audio.src=audioURL;
+    audio.preload='metadata';
     visible=true;skipStudio=!initial;seenTitle=!initial;resize();
     if(skipStudio)home.dataset.stage='title';
     play(initial?0:cues.titleSettledAt);
   }
-  function stop(){visible=false;audio.pause();if(raf)cancelAnimationFrame(raf);raf=0;}
+  function stop(){
+    visible=false;audio.pause();audio.preload='none';
+    // Pausing alone lets the title music continue downloading while the selected
+    // song is buffering. Releasing its source cancels that competing request.
+    audio.removeAttribute?.('src');audio.load();
+    if(raf)cancelAnimationFrame(raf);raf=0;
+  }
   sound.onclick=event=>{event.stopPropagation();play(home.dataset.stage==='title'?cues.titleSettledAt:0);};
   window.addEventListener('resize',resize,{passive:true});
   document.addEventListener('visibilitychange',()=>{

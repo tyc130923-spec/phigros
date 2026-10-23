@@ -1,0 +1,974 @@
+{
+  "revision": "65.0-offline-video-export",
+  "materials": {
+    "kind": "Original commercial game assets from an archived APK; not an official open-source game engine",
+    "version": "3.10.0",
+    "repository": "https://github.com/SteveZMTstudios/Phigros-history",
+    "release": "https://github.com/SteveZMTstudios/Phigros-history/releases/tag/v3.10.0",
+    "asset": {
+      "name": "Phigros_3.10.0.apk",
+      "size": 1981170970,
+      "url": "https://github.com/SteveZMTstudios/Phigros-history/releases/download/v3.10.0/Phigros_3.10.0.apk",
+      "digest": null
+    },
+    "checks": "ZIP entries validated by CRC32; embedded PNGs and PCM sounds equal extracted files byte for byte; sprite pivots/PPU and 30-frame animation mapping verified",
+    "normalTapReference": {
+      "file": "sharedassets12.assets",
+      "componentPathId": 83,
+      "fileID": 8,
+      "pathID": 64,
+      "byteOffset": 132
+    },
+    "normalTapSource": "sharedassets10.assets Sprite/64 Tap2; white sharedassets12 Sprite/37 is used by the ClickBad prefab"
+  },
+  "changes": [
+    {
+      "change": "Replace bundled imitation notes, Hold, hit animation, hit sounds and pause texture",
+      "basis": "Original sharedassets12.assets, sharedassets10.assets (NewHitFx animation pathID 16, 30 sprite references at 60 Hz) and sharedassets0 AudioClips; original pixels retained"
+    },
+    {
+      "change": "Preserve original texture padding, sprite proportions and multi-hit width; draw Hold head/body/tail with original PPU and pivots",
+      "basis": "Unity Sprite m_Rect, m_PixelsToUnits and m_Pivot; original skin manifest embedded in the resource ZIP"
+    },
+    {
+      "change": "Use 989/8080 reference width for original Phigros textures",
+      "basis": "https://github.com/lchzh3473/sim-phi/blob/1046c4e6b5fe807f48d9ea2dc35d301bc402fa1a/src/core.ts",
+      "sourceType": "Community simulator reference, not official Phigros source"
+    },
+    {
+      "change": "Composite ACTIVE native noise above HUD and hit effects; include score/combo in scene color for reflection",
+      "basis": [
+        "User explicitly confirmed noise covers score/combo",
+        "ActiveBlock shader samples sceneColorRT; browser integration mirrors HUD into /6 scene capture"
+      ],
+      "source": "https://github.com/Adai-add/PhiraiAd/tree/a60b49ad30b4748327df9a5fae794278a3978520"
+    },
+    {
+      "change": "Remove extra shrunken touch rectangle; retain rotated rectangle bounds and subtract parity",
+      "basis": "JudgeControl.IsPositionInsideBlock local half-size .5, no inset; TryGetBlockingBlock parity",
+      "source": "https://github.com/CHCAT1320/CHCAT-Docs/blob/054fcfdddc4ddf66b1bbecc45df0d5264e3d3852/knowladge/phigros/behavior.md",
+      "sourceType": "Community reverse engineering of Phigros 4.0.1; not official source"
+    },
+    {
+      "change": "Preserve contaminated finger until lift, with following red hover ring",
+      "basis": "User explicitly confirmed the held finger stays blocked after leaving a live noise area; existing contact flag and release lifecycle preserved"
+    },
+    {
+      "change": "Cache HUD layout/style; reuse one overlay and one scene capture; clean up on stop/resize",
+      "basis": "Implementation required to apply scene-color rendering to DOM HUD; verified layout cache, overlay cleanup and resize behavior. No new gameplay timing rules"
+    },
+    {
+      "change": "Migrate former bundled fkh material setting",
+      "basis": "User explicitly requested replacing the previous imitation skin; other imported material packs retained"
+    },
+    {
+      "change": "Non-blocking Disabled/Residual and Ready noise draw below chart notes, while Active/contaminated-finger overlay remains above HUD",
+      "basis": "User observation and requested layering; original DisabledBlock One/One and ReadyBlock SrcAlpha/One blend states from extracted shader data. Original fill colors/opacities are unchanged.",
+      "sources": [
+        "https://github.com/CHCAT1320/CHCAT-Docs/blob/054fcfdddc4ddf66b1bbecc45df0d5264e3d3852/knowladge/phigros/render.md",
+        "https://github.com/Adai-add/PhiraiAd/blob/a60b49ad30b4748327df9a5fae794278a3978520/prpr/src/noise_area/render.rs"
+      ]
+    },
+    {
+      "change": "Use the extracted original Ready shader for the half-second warning phase, below notes; retain material 11 (shine speed 37.9, brightness .12)",
+      "source": "https://github.com/CHCAT1320/CHCAT-Docs/blob/054fcfdddc4ddf66b1bbecc45df0d5264e3d3852/knowladge/phigros/shaders/Unlit_ReadyBlock.md",
+      "adaptation": "GLES 3 to WebGL 1 syntax only; original arithmetic retained; ready geometry remains in combined disabled masks according to original camera culling masks 40960/81920"
+    },
+    {
+      "change": "Restore original pause PNG with a persistent data URL for CSS",
+      "basis": "The existing imageFromBlob revokes the temporary blob URL after decoding; CSS background causes another image request and was using that revoked address. Original pause pixels, geometry and pointer handler retained."
+    },
+    {
+      "change": "Unify input velocity timestamps, ignore stale or duplicate motion samples, and prevent pointer recovery from acquiring UI/outside contacts",
+      "basis": "W3C Pointer Events chronological coalesced-sample requirement and inspection of mixed timestamp code paths. Existing native contact recovery, real-up release and noise latch preserved.",
+      "source": "https://www.w3.org/TR/pointerevents/"
+    },
+    {
+      "change": "Correct persistent visual-clock drift and display-specific missed-vblank diagnostics",
+      "basis": "The previous prediction retained errors below 50 ms indefinitely. Proportional correction converges while interpolating audio quanta; note timing and input judgement remain on the audio clock. Missed frames use measured cadence, not a fixed 120 Hz threshold."
+    },
+    {
+      "change": "Fix PJSK asymmetric flick/tail windows, require captured down for normal flicks, and defer early Trace to target time",
+      "source": "https://github.com/Next-SEKAI/sonolus-next-sekai-engine/tree/d3a3cef0888e95dc01ab0dddaa1eb6ebc2aa8fe3",
+      "files": [
+        "sekai/play/input_manager.py",
+        "sekai/play/note.py",
+        "sekai/lib/buckets.py"
+      ],
+      "sourceType": "MIT-licensed community recreation; not official commercial PJSK source"
+    },
+    {
+      "change": "Reuse typed slide-vertex buffers and compiled knots, track only active old holds, cache perfect-label gradient",
+      "basis": "Preserves existing authored knots and four subdivisions per remaining segment; removes per-frame arrays, sort and per-vertex point objects without reducing rendering quality."
+    },
+    {
+      "change": "Use original progress texture, original AP/full-combo/rank PNGs and safe title line boxes",
+      "source": "https://github.com/SteveZMTstudios/Phigros-history/releases/tag/v3.10.0",
+      "assetVersion": "3.10.0",
+      "sourceType": "Original commercial APK assets archived by community; not official open-source code",
+      "ranks": [
+        {
+          "name": "V15FC",
+          "pathId": 4,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "B15B",
+          "pathId": 6,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "F15F",
+          "pathId": 7,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "A15A",
+          "pathId": 10,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "phi15phi",
+          "pathId": 14,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "S15S",
+          "pathId": 15,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "V15V",
+          "pathId": 17,
+          "size": [
+            121,
+            128
+          ]
+        },
+        {
+          "name": "C15C",
+          "pathId": 22,
+          "size": [
+            121,
+            128
+          ]
+        }
+      ],
+      "progress": {
+        "pathId": 36,
+        "name": "Prograss bar打歌界面与暂停 素材_0",
+        "pixelsPerUnit": 100,
+        "rectangle": [
+          1,
+          1069,
+          1919,
+          11
+        ],
+        "sha256": "5a9da99a9b216f3030c51b6771bc98f8c1b9757fe405afb47501b4fdcbfc977d",
+        "pivot": [
+          1,
+          1
+        ]
+      },
+      "progressMotionReference": "https://github.com/lchzh3473/sim-phi/blob/main/src/index.ts",
+      "layout": "Existing measured result layout and entrance sequence retained; no unverified claim of 4.x pixel identity."
+    },
+    {
+      "change": "Replace all twelve compressed-preview songs and fifteen low-resolution illustrations with original game bitstreams/pixels; repair difficulty-specific artwork cache",
+      "basis": "Pinned Git blob hashes and complete ffmpeg decode verified for all 27 assets; all audio is real stereo at 44100 Hz and all illustrations native 2048x1080. Vorbis is lossy: no claim of lossless master audio or 4K source. No conversion, enhancement, resampling, or upscaling applied."
+    }
+  ],
+  "preserved": [
+    "Custom engine, no full SimPhi embedding or watermark",
+    "Verified complete Happy Ending OGG (162.198639 seconds)",
+    "Existing 10-contact input recovery and gesture-primed audio startup",
+    "Foreground centered using current authored viewport, background and noise cover full display"
+  ],
+  "verification": {
+    "selfTests": 22,
+    "phone": [
+      932,
+      430
+    ],
+    "tablet": [
+      1366,
+      1024
+    ],
+    "firstPlayRestarts": 0,
+    "HappyEndingNotes": 1568,
+    "HappyEndingSeconds": 162.198639,
+    "independentContacts": 10,
+    "networkRequests": 0,
+    "scope": "Desktop Chromium mobile/touch emulation and direct-file test; no claim of exhaustive original-game equivalence or physical iOS/Android device testing",
+    "fingerLifecycle": "Verified via touchstart/move/end: red hover follows contaminated finger outside area, disappears on lift, center retouch is unblocked",
+    "noisePhaseRegression": "Disabled and residual: additive below notes; Ready: original base fill plus original breathing shader below notes; Active: above notes and HUD. Original material colors/opacities unchanged. New lower shaders are prewarmed during loading.",
+    "hardwareLimit": "Headless browser measures CPU and functional regressions; cannot verify Safari/iPad GPU power consumption or guaranteed 120 Hz. No visual-quality reduction or artificial FPS cap added.",
+    "inputAndUIRegression": {
+      "input": {
+        "epochNormalized": true,
+        "x": 30,
+        "speed": 1999.980468959359,
+        "speedAfter": 1999.980468959359,
+        "drag": 1,
+        "flick": 1,
+        "blockedUI": true,
+        "visualDrift": 0
+      },
+      "pjsk": {
+        "unattached": false,
+        "down": true,
+        "armed": true,
+        "flick": true,
+        "counts": [
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "early": [
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "atTarget": [
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "earlyFlick": 3,
+        "lateFlick": 1,
+        "earlyTail": 4,
+        "lateTail": 1
+      },
+      "first": {
+        "running": true,
+        "paused": false,
+        "time": 0.10592970521541911,
+        "restarts": 0,
+        "channels": 2,
+        "image": [
+          2048,
+          1080
+        ],
+        "movePassive": true
+      },
+      "contact": {
+        "start": 10,
+        "afterLift": 9,
+        "active": 0,
+        "revived": 9,
+        "afterAll": 0
+      },
+      "text": [
+        {
+          "sel": "#gameSongName",
+          "glyphDescent": 5,
+          "visibleDescent": 8.675360000000001,
+          "ellipsis": "ellipsis",
+          "overflow": "hidden",
+          "line": 34.1642
+        },
+        {
+          "sel": "#resultSongTitle",
+          "glyphDescent": 7,
+          "visibleDescent": 11.627979999999999,
+          "ellipsis": "ellipsis",
+          "overflow": "hidden",
+          "line": 44.4135
+        }
+      ],
+      "progress": {
+        "size": [
+          1919,
+          11
+        ],
+        "start": [
+          145,
+          145,
+          145,
+          255
+        ],
+        "cap": [
+          255,
+          255,
+          255,
+          255
+        ],
+        "transform": "matrix(1, 0, 0, 1, -466, 0)",
+        "image": true,
+        "height": "5.32812px"
+      },
+      "reveal": {
+        "scale": 0.6199999999999999,
+        "error": 5.684341886080802e-14,
+        "innerVisible": true
+      },
+      "auto": {
+        "counts": [
+          1568,
+          0,
+          0,
+          0
+        ],
+        "total": 1568,
+        "cost": 11.5
+      },
+      "ap": {
+        "key": "Φ",
+        "loaded": true,
+        "label": "ALL PERFECT"
+      },
+      "fc": {
+        "key": "FC",
+        "label": "FULL COMBO",
+        "loaded": true
+      },
+      "pjskAuto": {
+        "kind": "pjsk",
+        "counts": [
+          2018,
+          0,
+          0,
+          0,
+          0
+        ],
+        "total": 2018,
+        "compiled": true
+      },
+      "errors": [],
+      "network": []
+    },
+    "syntheticSlideBenchmark": {
+      "environment": "Chromium software GPU, 932x430 DPR1; synthetic CPU stress, not physical 120 Hz or power measurement",
+      "reports": [
+        {
+          "historicalHolds": 10000,
+          "activeHolds": 12,
+          "knots": 33,
+          "frames": 320,
+          "p50": 0.6000000000931323,
+          "p95": 0.8000000002793968,
+          "max": 4.699999999720603,
+          "visibleSet": 0,
+          "drawn": 12,
+          "renderDpr": 1,
+          "version": "before"
+        },
+        {
+          "historicalHolds": 10000,
+          "activeHolds": 12,
+          "knots": 33,
+          "frames": 320,
+          "p50": 0.2999999998137355,
+          "p95": 0.5,
+          "max": 5.400000000372529,
+          "visibleSet": 12,
+          "drawn": 12,
+          "renderDpr": 1,
+          "version": "after"
+        }
+      ]
+    },
+    "genuineStereo": [
+      {
+        "id": "ch9_0_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 127.235193,
+        "sideEnergyRatio": 0.2800216031374443
+      },
+      {
+        "id": "ch9_1_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 139.675283,
+        "sideEnergyRatio": 0.3303949094072809
+      },
+      {
+        "id": "ch9_2_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 137.022404,
+        "sideEnergyRatio": 0.250325098710892
+      },
+      {
+        "id": "ch9_3_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 130.041905,
+        "sideEnergyRatio": 0.17441594706514865
+      },
+      {
+        "id": "ch9_4_music",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 144.356,
+        "sideEnergyRatio": 0.2849652694335568
+      },
+      {
+        "id": "ch9_5_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 178.754467,
+        "sideEnergyRatio": 0.3497717394526579
+      },
+      {
+        "id": "ch9_7_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 172.00907,
+        "sideEnergyRatio": 0.5970101341394273
+      },
+      {
+        "id": "ch9_8_music",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 165.313333,
+        "sideEnergyRatio": 0.25532209436152103
+      },
+      {
+        "id": "ch9_9_music",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 174.966667,
+        "sideEnergyRatio": 0.3839858486974232
+      },
+      {
+        "id": "ch9_10_music",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 150.750667,
+        "sideEnergyRatio": 0.4893462861091848
+      },
+      {
+        "id": "ch9_11_music",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 168.006667,
+        "sideEnergyRatio": 0.4550128374187696
+      },
+      {
+        "id": "ch9_12_music",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 162.198639,
+        "sideEnergyRatio": 0.4181263501269423
+      }
+    ],
+    "cadenceRegression": {
+      "true60HzBaseline": 16.6666666667,
+      "observed120HzBaselineAfterSlowdown": 8.3333333333,
+      "notes": "Eight consistent samples establish the budget; actual measured FPS remains unchanged. Persistent slowdown is still reported."
+    }
+  },
+  "media": {
+    "sources": {
+      "music": "cf5a76731bebd5640db16e9610aef60892901f27",
+      "art": "4988ce8cbb54246a3bbe0e2513b90ddde44be1bb"
+    },
+    "assets": [
+      {
+        "id": "ch9_0_music",
+        "name": "Leave All Behind",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/LeaveAllBehind.rider.ogg",
+        "gitBlobSha": "2e5a47fadcf9f73e0fac27d9249b506ee4df8753",
+        "bytes": 1922807,
+        "sha256": "79c7599de8be06aeab13175d5f3f02b3b3b7e62f6d957fba80388cc1fbb705ab",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 127.235193,
+        "bitRate": 120897
+      },
+      {
+        "id": "ch9_0_art",
+        "name": "Leave All Behind",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/LeaveAllBehind.rider.png",
+        "gitBlobSha": "20699bcd1c5b4d1d9e6a2a7dd3fafaa434b718ea",
+        "bytes": 2082062,
+        "sha256": "ccf62cb5a66bf7e7f16c7cb145307760430a5622f435dafcaade9cf719312b1a",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_1_music",
+        "name": "About The Universe",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/AboutTheUniverse.SOTUIMIssionary.ogg",
+        "gitBlobSha": "9660a3e126327e4a3f43759ee3d0efcc3da86193",
+        "bytes": 1991566,
+        "sha256": "9ab35fdff6b349233c0f2988148e093bf99491a261e9d1949ed7e6fe9c364e6e",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 139.675283,
+        "bitRate": 114068
+      },
+      {
+        "id": "ch9_1_art",
+        "name": "About The Universe",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/AboutTheUniverse.SOTUIMIssionary.png",
+        "gitBlobSha": "dcfcb288437aa36a8b043d52dd1d966430f2efb9",
+        "bytes": 2513799,
+        "sha256": "ba1a956eadeb6f97c54aa8e346bed5a335339c68cfff3453f0301fc0f219927c",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_2_music",
+        "name": "Implexrough",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/Implexrough.Silentroommommy.ogg",
+        "gitBlobSha": "bfe5029f037e002d880507e9e8dfc39418ef080e",
+        "bytes": 2025877,
+        "sha256": "4742c4002ad0929b726cc43c0295620f8efc8882ce0c764e14949abc83223f81",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 137.022404,
+        "bitRate": 118280
+      },
+      {
+        "id": "ch9_2_art",
+        "name": "Implexrough",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/Implexrough.Silentroommommy.png",
+        "gitBlobSha": "1b79ab905486df35b16e27bd6db44ffcfa4fa87c",
+        "bytes": 2399698,
+        "sha256": "c74d87395d59e55761c8a8d6b3d5069a97863ce27e94fc786db163f163c4295a",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_3_music",
+        "name": "Evanescent",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/Evanescent.LeaF.ogg",
+        "gitBlobSha": "46f00a31d891e380c2081d64720e06aa5274243a",
+        "bytes": 1936333,
+        "sha256": "a0cf6424c6c76735da9c8ddf95674d648103ad0a0828115d4281b1974f88b27f",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 130.041905,
+        "bitRate": 119120
+      },
+      {
+        "id": "ch9_3_art",
+        "name": "Evanescent",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/Evanescent.LeaF.png",
+        "gitBlobSha": "5c563620afc1b1c93c80bc6682fb407e3d7c1058",
+        "bytes": 2359966,
+        "sha256": "5a518bcbf96069bb28d08bc5fd4368fd1cf8a9ffc10410eb69be9a5818954b6a",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_4_music",
+        "name": "Entrance to the Chaos",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/EntrancetotheChaos.%E6%89%93%E6%89%93%E3%81%A0%E3%81%84%E3%81%9Avssiromaru.ogg",
+        "gitBlobSha": "a0c4f82af1afdfd4ffded2cd2308053101c78476",
+        "bytes": 2123174,
+        "sha256": "a7cc24091b4f304416fc26262951306adcf29a664d614375d36680575cc7f7c6",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 144.356,
+        "bitRate": 117663
+      },
+      {
+        "id": "ch9_4_art",
+        "name": "Entrance to the Chaos",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/EntrancetotheChaos.%E6%89%93%E6%89%93%E3%81%A0%E3%81%84%E3%81%9Avssiromaru.png",
+        "gitBlobSha": "442277e0d04f2bf0e5db2cfd231ab9beeca0ce9b",
+        "bytes": 2965370,
+        "sha256": "bac016e69d35c95efe64d1cb8661fee74523920d1b744c633e0d8283c2f3c82b",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_5_music",
+        "name": "Exoplanetary Mirage",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/ExoplanetaryMirage.%E3%81%8B%E3%82%81%E3%82%8A%E3%81%82.ogg",
+        "gitBlobSha": "74ed94ff907c2d84bc4b0e823fe2ff9e0756ef57",
+        "bytes": 2602309,
+        "sha256": "88c76d9da269f1fab4f8ccba3b486d4c644784aab67f17fd4b92a355fd08df3f",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 178.754467,
+        "bitRate": 116464
+      },
+      {
+        "id": "ch9_5_art",
+        "name": "Exoplanetary Mirage",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/ExoplanetaryMirage.%E3%81%8B%E3%82%81%E3%82%8A%E3%81%82.png",
+        "gitBlobSha": "3d0719c042d40cb2acb4ae872159beb6b82bca3f",
+        "bytes": 3760343,
+        "sha256": "02e0e6c98242ab4ba34d631f84d4ad8d1c39d4efa14561bc6d2bd97cc4bdc692",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_7_music",
+        "name": "Ametrine",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/Ametrine.GRYSCLMIssionary.ogg",
+        "gitBlobSha": "c60ac163ded01d4eefde80c390da460ab66534cb",
+        "bytes": 2644690,
+        "sha256": "46833a3b19e1157884bb1cc42582207930d1d6a5126d072cf127cfcb9ffe9ebe",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 172.00907,
+        "bitRate": 123002
+      },
+      {
+        "id": "ch9_7_art",
+        "name": "Ametrine",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/Ametrine.GRYSCLMIssionary.png",
+        "gitBlobSha": "a78cd87305d53ec4980d657b5692b1afa8e0d855",
+        "bytes": 3320385,
+        "sha256": "2484c0247872057b0a7f94db4cddf27aa76b7aa0b1e1f5afd975b0f91ed696d2",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_8_music",
+        "name": "Petrichor",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/Petrichor.voidMournfinale.ogg",
+        "gitBlobSha": "da2c9acfa0663fb13f4071b0b098a417a83a712b",
+        "bytes": 2534724,
+        "sha256": "94d928f505aa200592dff1e4089e0a3a4921aac70dcaeba2808338424a69a69b",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 165.313333,
+        "bitRate": 122662
+      },
+      {
+        "id": "ch9_8_art",
+        "name": "Petrichor",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/Petrichor.voidMournfinale.png",
+        "gitBlobSha": "72fc9e92d6f8cd9a955e0fbbe9a983638e5da503",
+        "bytes": 4902281,
+        "sha256": "44f09091b4ec888a8af9a51a977b21fa0b09ea7c19cd30e9b321049ba8ae2fb2",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_9_music",
+        "name": "ハテ",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/%E3%83%8F%E3%83%86.rNFrums.ogg",
+        "gitBlobSha": "96a92fe0596aaeb59d4f7feb1eb5185394ae0093",
+        "bytes": 2486239,
+        "sha256": "4dc62036ccfc1989205a6aa95619f80927a2bc359ec791db01c2473a7e382e19",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 174.966667,
+        "bitRate": 113678
+      },
+      {
+        "id": "ch9_9_art",
+        "name": "ハテ",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/%E3%83%8F%E3%83%86.rNFrums.png",
+        "gitBlobSha": "ced7c3f2bcd4048a078694a5be35ebeb644ba2b9",
+        "bytes": 2329681,
+        "sha256": "8459fbea476f63caa6160cf11af9ad3fef9092306ce15f809c1bbed624a0751d",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_10_music",
+        "name": "Desultory Signals",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/DesultorySignals.technoplanet.ogg",
+        "gitBlobSha": "313a436bfc1a0bbaa59ff6b0fbcba8543b84d357",
+        "bytes": 2352757,
+        "sha256": "a25a54588559237cd8ca114e505f677f57e4cb695595146efd30171cbc22bdba",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 150.750667,
+        "bitRate": 124855
+      },
+      {
+        "id": "ch9_10_art",
+        "name": "Desultory Signals",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/DesultorySignals.technoplanet.png",
+        "gitBlobSha": "832168a5d509577835c398c181afa3ba11683eeb",
+        "bytes": 3352089,
+        "sha256": "1122e5c2f7223e60a887cb3f498ad9e129764b95a247a032c49bbb4a997792a0",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_11_music",
+        "name": "Message",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/Message.%E3%81%8F%E3%82%8B%E3%81%B6%E3%81%A3%E3%81%93%E3%81%A1%E3%82%83%E3%82%93.ogg",
+        "gitBlobSha": "d7ba5692e6362f83de5cb3d64c855cd681132df4",
+        "bytes": 2435927,
+        "sha256": "0414bec5b7de47d9c3e23837abaa9e476009fb68b4059f2f8c5535401cd32832",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 48000,
+        "duration": 168.006667,
+        "bitRate": 115991
+      },
+      {
+        "id": "ch9_11_art",
+        "name": "Message",
+        "kind": "art",
+        "difficulty": null,
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/Message.%E3%81%8F%E3%82%8B%E3%81%B6%E3%81%A3%E3%81%93%E3%81%A1%E3%82%83%E3%82%93.png",
+        "gitBlobSha": "948955be80dbf2bda8533058297ce4346642ef7d",
+        "bytes": 2622574,
+        "sha256": "25fcd2cb877e0a2d309d12ef2385467bd7fa19843be1087a350d35d212c77f15",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_12_music",
+        "name": "What do you want more than a Happy ending?",
+        "kind": "music",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/cf5a76731bebd5640db16e9610aef60892901f27/WhatdoyouwantmorethanaHappyending.Apo11oHALOprogramft%E5%AE%89%E6%9C%88%E5%90%8D%E8%8E%89%E5%AD%90%E5%A4%A7%E7%80%AC%E8%89%AF%E3%81%82%E3%81%84.ogg",
+        "gitBlobSha": "851c0ffea5fd97d3f9cfa8e76d4eafe9f264f846",
+        "bytes": 2521479,
+        "sha256": "66206715c7f2e4b44939435c5fb89151db72a2f70a200fd0bfdadcdc9ca6a55b",
+        "codec": "vorbis",
+        "channels": 2,
+        "sampleRate": 44100,
+        "duration": 162.198639,
+        "bitRate": 124364
+      },
+      {
+        "id": "ch9_12_art_ez",
+        "name": "What do you want more than a Happy ending?",
+        "kind": "art",
+        "difficulty": "EZ",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/WhatdoyouwantmorethanaHappyending.Apo11oHALOprogramft%E5%AE%89%E6%9C%88%E5%90%8D%E8%8E%89%E5%AD%90%E5%A4%A7%E7%80%AC%E8%89%AF%E3%81%82%E3%81%84_EZ.png",
+        "gitBlobSha": "240d534ea41420ef81e7c7a406b62109fb4d3780",
+        "bytes": 2243954,
+        "sha256": "7163f838c62536ac7716f148e73ac0bf618dc1fa13dadfe3382e5530f37e13ec",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_12_art_hd",
+        "name": "What do you want more than a Happy ending?",
+        "kind": "art",
+        "difficulty": "HD",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/WhatdoyouwantmorethanaHappyending.Apo11oHALOprogramft%E5%AE%89%E6%9C%88%E5%90%8D%E8%8E%89%E5%AD%90%E5%A4%A7%E7%80%AC%E8%89%AF%E3%81%82%E3%81%84_HD.png",
+        "gitBlobSha": "e2a8548ca9d9331287c4d8382f75815ac681d919",
+        "bytes": 2318536,
+        "sha256": "e8422d9696a18df46574dcb2b2a080f956df4d3b2cf37e3f13d44fcd86b2bd2f",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_12_art_in",
+        "name": "What do you want more than a Happy ending?",
+        "kind": "art",
+        "difficulty": "IN",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/WhatdoyouwantmorethanaHappyending.Apo11oHALOprogramft%E5%AE%89%E6%9C%88%E5%90%8D%E8%8E%89%E5%AD%90%E5%A4%A7%E7%80%AC%E8%89%AF%E3%81%82%E3%81%84_IN.png",
+        "gitBlobSha": "5ba20997e1a0ea63c4136142ced7bf6514303e39",
+        "bytes": 2235220,
+        "sha256": "06d1b50365de03fd27647b623a3101cfe1011330d8508c63ab6fb6736371a16a",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      },
+      {
+        "id": "ch9_12_art_at",
+        "name": "What do you want more than a Happy ending?",
+        "kind": "art",
+        "difficulty": "AT",
+        "source": "https://raw.githubusercontent.com/7aGiven/Phigros_Resource/4988ce8cbb54246a3bbe0e2513b90ddde44be1bb/WhatdoyouwantmorethanaHappyending.Apo11oHALOprogramft%E5%AE%89%E6%9C%88%E5%90%8D%E8%8E%89%E5%AD%90%E5%A4%A7%E7%80%AC%E8%89%AF%E3%81%82%E3%81%84_AT.png",
+        "gitBlobSha": "22937ca53d6e59eb0f65757f73a770588c311056",
+        "bytes": 2317589,
+        "sha256": "43226b33f15384334ffc0315afc48f4a6391d5634864958b6c6b77cf168659e9",
+        "size": [
+          2048,
+          1080
+        ],
+        "format": "PNG"
+      }
+    ],
+    "audioQuality": "Original game Vorbis bitstreams, not lossless masters; no re-encoding",
+    "illustrationQuality": "Original extracted PNG pixels; native dimensions, no upscaling"
+  },
+  "videoExport": {
+    "library": "Mediabunny 1.61.6 + @mediabunny/aac-encoder 1.61.6",
+    "source": "https://github.com/Vanilagy/mediabunny",
+    "sources": [
+      "https://mediabunny.dev/guide/writing-media-files",
+      "https://mediabunny.dev/guide/media-sources"
+    ],
+    "pipeline": "Independent fixed CSS viewport (4:3 default, 9:16, 16:9); same Engine, original GPU noise and embedded fonts; integer frame timestamps with 120-Hz simulation; no screen capture.",
+    "encoding": "Native WebCodecs video, preferred hardware HEVC/H264; native AAC or bundled AAC WASM fallback. Quality mode, await source.add(), no raw-frame array, fragmented MP4, 1-MiB stream chunks into OPFS, one main-thread transferred VideoFrame per request",
+    "presets": {
+      "aspects": [
+        "4:3",
+        "9:16",
+        "16:9"
+      ],
+      "defaultAspect": "4:3",
+      "resolutions": [
+        1080,
+        1440,
+        2160
+      ],
+      "fps": [
+        30,
+        60,
+        120
+      ]
+    },
+    "limits": "Requires browser WebCodecs and OPFS in a secure context. Encoding waits for every frame and verifies packet/sample counts. Browser termination, memory exhaustion or codec failure aborts export; no promise of binary identity to a lossy screen recording.",
+    "safariCompatibility": "Each export document loads independent CSS FontFaces from identical embedded font bytes; no cross-document FontFaceSet.add. Frame indices and intended timestamps are verified separately, with a 2-microsecond tolerance for WebKit Canvas VideoFrame timestamp conversion, and explicit sample timing for the muxer.",
+    "savedVideos": "Native OPFS File downloads without whole-file JS copies; completed MP4s and per-file metadata survive reloads. Finalized legacy/orphan files are recovered from bounded header/footer reads. No automatic deletion of successful exports. Large and 2160P/120 exports bypass platform file sharing. Actions unlock only after GPU, encoder and audio cleanup.",
+    "speed": "Benchmark native AVC/HEVC hardware candidates and both encoder latency modes at the selected resolution; retain only candidates emitting every test frame, cache the fastest for this browser/preset. Bounded two-frame render/encode pipeline; combine audio/video RPC with contiguous ~100 ms PCM batches. Preserve original output compositing and bitrate. No resolution, shader, frame or glyph reduction. Bundled AAC encoder preserves codec priming PTS for consistent gapless, synchronized output across Safari devices."
+  },
+  "leaveAllBehindRepair": {
+    "originals": {
+      "commit": "86dcd193e94e7c3ad0f98c108945cf9adf85e4bb",
+      "entries": [
+        {
+          "path": "LeaveAllBehind.rider.0/AT.json",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "0ad8a4e51cf37a22a317516bd352c04b3b447320",
+          "size": 3798389,
+          "url": "https://api.github.com/repos/7aGiven/Phigros_Resource/git/blobs/0ad8a4e51cf37a22a317516bd352c04b3b447320"
+        },
+        {
+          "path": "LeaveAllBehind.rider.0/EZ.json",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "e5f6fdd31d2d1f443159dae4ce747af2b8e3beec",
+          "size": 69254,
+          "url": "https://api.github.com/repos/7aGiven/Phigros_Resource/git/blobs/e5f6fdd31d2d1f443159dae4ce747af2b8e3beec"
+        },
+        {
+          "path": "LeaveAllBehind.rider.0/HD.json",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "2bb1a4dc6a052a4a7038aa29d1932379539d91a8",
+          "size": 197979,
+          "url": "https://api.github.com/repos/7aGiven/Phigros_Resource/git/blobs/2bb1a4dc6a052a4a7038aa29d1932379539d91a8"
+        },
+        {
+          "path": "LeaveAllBehind.rider.0/IN.json",
+          "mode": "100644",
+          "type": "blob",
+          "sha": "5a7fe54086e70b599c447c5d78cd164997974c97",
+          "size": 723252,
+          "url": "https://api.github.com/repos/7aGiven/Phigros_Resource/git/blobs/5a7fe54086e70b599c447c5d78cd164997974c97"
+        }
+      ]
+    },
+    "basis": "Desktop opens all four previous charts, so iPad-specific failure not reproduced. Original verified raw JSON replaces packed P9C/LZMA for these four difficulties; no decompressor required for this song.",
+    "counts": {
+      "EZ": 210,
+      "HD": 394,
+      "IN": 523,
+      "AT": 808
+    }
+  },
+  "runtime": "4.0.1.2-stability-2",
+  "safariHudLoading": {
+    "viewport": "Gameplay and loading screens track visible viewport size/offset; safe bottom insets; fixed export document retains its own box and zero device safe-area inset.",
+    "captions": "Populate metadata before prewarm; invalidate HUD geometry after metadata/font changes; discard intro/outro geometry as motion changes; nonzero baseline marker with same-font metric recovery. Reproduced old caption baselines 634.9/640.5 outside a 620px surface; repaired stable values 589.9/595.5.",
+    "loading": "One-second passing white strip with text inversion, repeated while loading, slower under reduced motion. Community loading reference; earlier user recording was not retrievable in this session."
+  }
+}

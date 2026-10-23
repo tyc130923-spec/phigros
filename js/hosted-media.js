@@ -93,7 +93,22 @@
     }
     return 0;
   }
-  function bufferTarget(duration, downloadRate, elapsed, minimum = 8) {
+  function decodeChart(packed,expectedSize){
+    return new Promise((resolve,reject)=>{
+      let worker,timer;
+      const finish=(error,bytes)=>{clearTimeout(timer);worker?.terminate();error?reject(error):resolve(bytes);};
+      try{
+        worker=new Worker(url('./js/chart-decode-worker.js'));
+        worker.onmessage=({data})=>finish(data.ok?null:Error(data.error),data.bytes);
+        worker.onerror=()=>finish(Object.assign(Error('谱面后台线程不可用'),{name:'WorkerUnavailableError'}));
+        timer=setTimeout(()=>finish(Error('谱面后台解码超时')),30000);
+        // Transfer a copy: the compressed download cache must remain reusable.
+        const bytes=packed.slice();worker.postMessage({bytes,expectedSize},[bytes.buffer]);
+      }catch(error){finish(Object.assign(Error(error?.message||'谱面后台线程不可用'),{name:'WorkerUnavailableError'}));}
+    });
+  }
+  function bufferTarget(duration, downloadRate, elapsed, minimum = 6) {
+    if(globalThis.PhiPerformance)return PhiPerformance.startupBuffer(duration,downloadRate,elapsed,minimum);
     if (elapsed < 1.2 || !(downloadRate > 0)) return Math.min(duration, minimum);
     if (downloadRate < 1.1) return Math.min(duration, Math.max(minimum, duration * Math.max(0, 1 - downloadRate) + 10));
     return Math.min(duration, downloadRate >= 2 ? minimum : Math.max(minimum, 12));
@@ -107,7 +122,7 @@
       audio.setAttribute('playsinline', '');
       audio.src = url(spec.url); audio.load();
     }
-    snapshot(minimum = 8) {
+    snapshot(minimum = 6) {
       const at = Number(this.audio.currentTime) || 0;
       const duration = Number.isFinite(this.audio.duration) && this.audio.duration > 0 ? this.audio.duration : this.spec.duration;
       const ahead = bufferedAhead(this.audio, at), elapsed = Math.max(.01, (performance.now() - this.started) / 1000);
@@ -120,7 +135,7 @@
       return { ahead, target, duration, rate, complete: ahead >= remaining - .1,
         ready: this.audio.readyState >= 3 && (ahead >= target || ahead >= remaining - .1) };
     }
-    wait(minimum = 12, {signal: externalSignal} = {}) {
+    wait(minimum = 6, {signal: externalSignal} = {}) {
       const audio = this.audio, signal = this.controller.signal;
       return new Promise((resolve, reject) => {
         let timer, lastAhead = -1, lastProgress = performance.now();
@@ -149,7 +164,7 @@
     }
     destroy() { this.controller.abort(); }
   }
-  globalThis.PhiHostedMedia = Object.freeze({ manifest, url, bytes, artwork, bufferedAhead, bufferTarget, Stream });
+  globalThis.PhiHostedMedia = Object.freeze({ manifest, url, bytes, artwork, bufferedAhead, bufferTarget, decodeChart, Stream });
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}), { once: true });
   }

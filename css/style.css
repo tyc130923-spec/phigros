@@ -1,5 +1,5 @@
 
-@font-face{font-family:"PhiEmbeddedSaira";src:url(../assets/ui/d65b08975e2b2814.woff2) format("woff2");font-style:normal;font-weight:400;font-display:block;}
+@font-face{font-family:"PhiEmbeddedSaira";src:url(../assets/ui/d65b08975e2b2814.woff2) format("woff2");font-style:normal;font-weight:400;font-display:swap;}
 @font-face{font-family:"PhiCJK";font-style:normal;font-weight:100 900;font-display:swap;src:url(../assets/ui/0ffce31409ad144a.woff) format("woff")}
 
 :root{--bg:#12141c;--panel:#1b1e29;--text:#fff;--muted:#a8b0c5;--line:#ffffff24;--accent:#70eaff;--danger:#ff8197;--ok:#78ffd3;--phi-ui-font:'PhiEmbeddedSaira',Saira,'Helvetica Neue',Arial,sans-serif;--phi-song-font:'PingFang SC','Microsoft YaHei',system-ui,sans-serif;--phi-narrow-font:var(--phi-ui-font);font-synthesis:none}

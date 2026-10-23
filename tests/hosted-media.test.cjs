@@ -13,6 +13,7 @@ function runtime(overrides = {}) {
     PhiHostedManifest: {audio:{}, artwork:{}},
     fetch: async () => new Response('asset'), ...overrides
   });
+  vm.runInContext(fs.readFileSync('js/performance-policy.js','utf8'), context);
   vm.runInContext(fs.readFileSync('js/hosted-media.js','utf8'), context);
   return context;
 }
@@ -21,6 +22,8 @@ class FakeAudio extends EventTarget {
     this.buffered={get length(){return 1;},start:()=>0,end:()=>this.ahead};}
   pause(){this.paused=true;}
   setAttribute(){}
+  getAttribute(name){return name==='src'?this.src:null;}
+  removeAttribute(name){if(name==='src')this.src='';}
   load(){}
 }
 
@@ -42,7 +45,7 @@ test('returning to the library aborts a pending wait without hanging',async()=>{
 test('under-speed links require enough headroom to cover their measured deficit',()=>{
   const {PhiHostedMedia:media}=runtime();
   assert.equal(media.bufferTarget(160,.5,8),90);
-  assert.equal(media.bufferTarget(160,3,8),8);
+  assert.equal(media.bufferTarget(160,3,8),6);
   assert.equal(media.bufferTarget(5,.5,8),5);
 });
 test('a fully buffered short tail can resume immediately',async()=>{
@@ -63,6 +66,22 @@ test('progressive artwork preserves the small image if the clear image fails',as
 });
 test('blocks cross-origin resource paths',async()=>{
   const {PhiHostedMedia:media}=runtime();await assert.rejects(media.bytes('https://elsewhere.test/music'));
+});
+
+test('a browser denying workers reports a compatibility fallback without mutating its DOMException',async()=>{
+  class BlockedWorker{constructor(){throw new DOMException('blocked','SecurityError');}}
+  const {PhiHostedMedia:media}=runtime({Worker:BlockedWorker});
+  await assert.rejects(media.decodeChart(new Uint8Array([1,2]),2),{name:'WorkerUnavailableError'});
+});
+test('chart loading transfers a copy and terminates its worker after receiving the result',async()=>{
+  let transfer,terminated=false;
+  class DecoderWorker{
+    postMessage(data){transfer=data.bytes;setTimeout(()=>this.onmessage({data:{ok:true,bytes:new Uint8Array([123,125])}}),0);}
+    terminate(){terminated=true;}
+  }
+  const {PhiHostedMedia:media}=runtime({Worker:DecoderWorker}),packed=new Uint8Array([1,2,3]);
+  const result=await media.decodeChart(packed,3);
+  assert.notEqual(transfer,packed);assert.deepEqual([...packed],[1,2,3]);assert.deepEqual([...result],[123,125]);assert.equal(terminated,true);
 });
 
 test('a caller can cancel a recovery wait without destroying the stream',async()=>{
@@ -106,4 +125,8 @@ test('opening cues follow the music clock, remain clear after looping, and stop 
   opening.audio.currentTime=8.9;frame();assert.equal(home.dataset.stage,'title');assert.equal(styles.get('--opening-blur'),'0px');
   opening.audio.currentTime=.1;frame();assert.equal(home.dataset.stage,'title');assert.equal(styles.get('--opening-blur'),'0px');
   opening.stop();assert.equal(opening.audio.paused,true);assert.equal(frame,null);
+  assert.equal(opening.audio.src,'','leaving the title must cancel its competing media request');
+  assert.equal(opening.audio.preload,'none');
+  opening.show(false);await Promise.resolve();frame();assert.equal(home.dataset.stage,'title');assert(opening.audio.src);
+  opening.stop();
 });

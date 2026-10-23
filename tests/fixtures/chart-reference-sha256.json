@@ -1,0 +1,254 @@
+[
+  {
+    "id": "ch9_1_ez",
+    "url": "./assets/charts/individual/ch9_1_ez.bin",
+    "usize": 198508,
+    "sha256": "0d8a2b8ac067bac9438c96bde40836480ba4657658d46539d5fb56c46f48e835"
+  },
+  {
+    "id": "ch9_1_hd",
+    "url": "./assets/charts/individual/ch9_1_hd.bin",
+    "usize": 449978,
+    "sha256": "9d77c503e8bca4c5f3ed35b84296c9a361d52c409f1431ff81b6156776a74f66"
+  },
+  {
+    "id": "ch9_1_in",
+    "url": "./assets/charts/individual/ch9_1_in.bin",
+    "usize": 1087325,
+    "sha256": "94847b964304c96ed02b275e083f9489f4660845447315ca4db7ddc6821d01af"
+  },
+  {
+    "id": "ch9_2_ez",
+    "url": "./assets/charts/individual/ch9_2_ez.bin",
+    "usize": 130949,
+    "sha256": "7699de4115beaf23490344d0109f9e540da6869ae29ba9e5d19414a39c2b1f8e"
+  },
+  {
+    "id": "ch9_2_hd",
+    "url": "./assets/charts/individual/ch9_2_hd.bin",
+    "usize": 194753,
+    "sha256": "7fc7c0d8f450ae24f3a9ff511e6a9b613b038d489c92b41cded5500c7f6862af"
+  },
+  {
+    "id": "ch9_2_in",
+    "url": "./assets/charts/individual/ch9_2_in.bin",
+    "usize": 484481,
+    "sha256": "6384e906cadbb2d36abfa3a3629c2d2156d095fb50df0ca40270c66eff59f81e"
+  },
+  {
+    "id": "ch9_3_ez",
+    "url": "./assets/charts/individual/ch9_3_ez.bin",
+    "usize": 536811,
+    "sha256": "014cfbabe896760f39dcb3761875de57c9f12245784af2de3d7cb76715d545bc"
+  },
+  {
+    "id": "ch9_3_hd",
+    "url": "./assets/charts/individual/ch9_3_hd.bin",
+    "usize": 485514,
+    "sha256": "3787f3fae9c13a0175ba56095a0a795c24e874db7adcdd367cc9fd0e053a41a6"
+  },
+  {
+    "id": "ch9_3_in",
+    "url": "./assets/charts/individual/ch9_3_in.bin",
+    "usize": 1313866,
+    "sha256": "8d144e0530792d5a7061c4e3b29ac446205236f91e3d248a55fbdacdb3793978"
+  },
+  {
+    "id": "ch9_4_ez",
+    "url": "./assets/charts/individual/ch9_4_ez.bin",
+    "usize": 490273,
+    "sha256": "15f26d69677d4b6c3bb7917524b44c9faa223e81792ca7f7ed7e7f4cca68940a"
+  },
+  {
+    "id": "ch9_4_hd",
+    "url": "./assets/charts/individual/ch9_4_hd.bin",
+    "usize": 1079671,
+    "sha256": "9d352be6f0302952460d5b1cd761363e0e5523b3bcb205aa8826056c38a3434f"
+  },
+  {
+    "id": "ch9_4_in",
+    "url": "./assets/charts/individual/ch9_4_in.bin",
+    "usize": 1056365,
+    "sha256": "cd5391e691532af800990445e3fe05ea477ed8301da8e2feadd5e05f01628dec"
+  },
+  {
+    "id": "ch9_4_at",
+    "url": "./assets/charts/individual/ch9_4_at.bin",
+    "usize": 941819,
+    "sha256": "5e02e54a405d881a56760617f6cd8a5625fc77ecd5fd7e6f224565676af96d7e"
+  },
+  {
+    "id": "ch9_5_ez",
+    "url": "./assets/charts/individual/ch9_5_ez.bin",
+    "usize": 761462,
+    "sha256": "81c570da59812aaffd3e12591eb427cea0b038234e2ad95b5e10dd247706662d"
+  },
+  {
+    "id": "ch9_5_hd",
+    "url": "./assets/charts/individual/ch9_5_hd.bin",
+    "usize": 782689,
+    "sha256": "c4e542d043574e0aa2166315ca595badf5ffc4b4f2e043bf41f12987a27b12a4"
+  },
+  {
+    "id": "ch9_5_in",
+    "url": "./assets/charts/individual/ch9_5_in.bin",
+    "usize": 1719064,
+    "sha256": "4227ced7e40bed4459d9e1fca7ea9c5fbb97ae78d44c1569a35b05c20fc8fc5b"
+  },
+  {
+    "id": "ch9_5_at",
+    "url": "./assets/charts/individual/ch9_5_at.bin",
+    "usize": 1741622,
+    "sha256": "787f2ea022df537462fe1dfc6b6eed3a0be995f225c0e5b7c23fef52d800ee84"
+  },
+  {
+    "id": "ch9_7_ez",
+    "url": "./assets/charts/individual/ch9_7_ez.bin",
+    "usize": 167534,
+    "sha256": "23719161532e591e69ff8f0beb09bc623ebaf5ba50ed0a5645fd3b72195b66f8"
+  },
+  {
+    "id": "ch9_7_hd",
+    "url": "./assets/charts/individual/ch9_7_hd.bin",
+    "usize": 278246,
+    "sha256": "3bb5cc6411b2bbee0197847aed7955376c49da8af1d10bd8967a1149148f900d"
+  },
+  {
+    "id": "ch9_7_in",
+    "url": "./assets/charts/individual/ch9_7_in.bin",
+    "usize": 709782,
+    "sha256": "ba257ef2493ce44a41ef5b7d2a6d329d5fbb627bbbebdd21f0d887a0fe9d7a3d"
+  },
+  {
+    "id": "ch9_7_at",
+    "url": "./assets/charts/individual/ch9_7_at.bin",
+    "usize": 1239027,
+    "sha256": "ba3b0280de7b92917f521b5e46eeecf4ac7a9453daa780ce89b30b27a7aa67c2"
+  },
+  {
+    "id": "ch9_8_ez",
+    "url": "./assets/charts/individual/ch9_8_ez.bin",
+    "usize": 189388,
+    "sha256": "5bf5cf5c880c00b2f4e7a98491a490983f5516d151fae9889e9e12d26dac22ad"
+  },
+  {
+    "id": "ch9_8_hd",
+    "url": "./assets/charts/individual/ch9_8_hd.bin",
+    "usize": 636888,
+    "sha256": "6e03bc462adb4bdef0cc935d6d1c5e686c572d7d9a38177f84af1c06a7b3cd4b"
+  },
+  {
+    "id": "ch9_8_in",
+    "url": "./assets/charts/individual/ch9_8_in.bin",
+    "usize": 539496,
+    "sha256": "ddf8a6f24f18d192719fc78824e8e800259faae50514c5c26b51a63452f50075"
+  },
+  {
+    "id": "ch9_8_at",
+    "url": "./assets/charts/individual/ch9_8_at.bin",
+    "usize": 1416316,
+    "sha256": "94bf61d10558ac257fdc828072f4d99fd1b5e625e53f13ab55ce3cf6591e6815"
+  },
+  {
+    "id": "ch9_9_ez",
+    "url": "./assets/charts/individual/ch9_9_ez.bin",
+    "usize": 61501,
+    "sha256": "2c040a0248fbb8537343ae839a18c394cbf863ba2401c52140110461a875b493"
+  },
+  {
+    "id": "ch9_9_hd",
+    "url": "./assets/charts/individual/ch9_9_hd.bin",
+    "usize": 153536,
+    "sha256": "d67683e227d6d0dea2462e7b8807999d7e45f3f69ad1f3ce177aad7e9374bb4b"
+  },
+  {
+    "id": "ch9_9_in",
+    "url": "./assets/charts/individual/ch9_9_in.bin",
+    "usize": 430021,
+    "sha256": "f41de3172b8f9af99c69dac12ddcdfa64cc599d15027415d3d138112c4826fdb"
+  },
+  {
+    "id": "ch9_9_at",
+    "url": "./assets/charts/individual/ch9_9_at.bin",
+    "usize": 2718047,
+    "sha256": "c086f1f64fa4c008386952b2ef3b3952b7c126e7b240aac5725a18c5742fcfa8"
+  },
+  {
+    "id": "ch9_10_ez",
+    "url": "./assets/charts/individual/ch9_10_ez.bin",
+    "usize": 297083,
+    "sha256": "7f7cc0be3d985020ec7ed7ae18d92765242510786ef95d61676ca93960217711"
+  },
+  {
+    "id": "ch9_10_hd",
+    "url": "./assets/charts/individual/ch9_10_hd.bin",
+    "usize": 589138,
+    "sha256": "e77630f909a1d950a90c50cd9a191b0dc3ee61011db24c58247b744a4cef9e38"
+  },
+  {
+    "id": "ch9_10_in",
+    "url": "./assets/charts/individual/ch9_10_in.bin",
+    "usize": 915167,
+    "sha256": "04e65407de6e6cd9608569d1ddf5d32b3802107c49ef4ac215899d42fccc6e8d"
+  },
+  {
+    "id": "ch9_10_at",
+    "url": "./assets/charts/individual/ch9_10_at.bin",
+    "usize": 1585071,
+    "sha256": "692d6fc25de09d029fc847d4388d48c4206e49a877aeda20033cfb1515876ac9"
+  },
+  {
+    "id": "ch9_11_ez",
+    "url": "./assets/charts/individual/ch9_11_ez.bin",
+    "usize": 183641,
+    "sha256": "015fee7934439659ad8aa5a8abc3b530eaab4a5f0833dcbde386dad2043ab334"
+  },
+  {
+    "id": "ch9_11_hd",
+    "url": "./assets/charts/individual/ch9_11_hd.bin",
+    "usize": 616824,
+    "sha256": "a6bc70d460453b329f8129dcfc989e3c8e45455e222053ad1f3b7ddc54ee5f57"
+  },
+  {
+    "id": "ch9_11_in",
+    "url": "./assets/charts/individual/ch9_11_in.bin",
+    "usize": 646274,
+    "sha256": "c677d7106a97c19c66772234c83e108411940dfb38ddb1062f4167c0c687a384"
+  },
+  {
+    "id": "ch9_11_at",
+    "url": "./assets/charts/individual/ch9_11_at.bin",
+    "usize": 985173,
+    "sha256": "d56dae48acc7aaa3f0b6ee54d2a2e2f5440605212bc7bda84e88634df0090a04"
+  },
+  {
+    "id": "ch9_11_sp",
+    "url": "./assets/charts/individual/ch9_11_sp.bin",
+    "usize": 1616626,
+    "sha256": "09191b7e525e709aea2b9f307c557c835bd7bd2cd3b51ae81be8602fe838f13a"
+  },
+  {
+    "id": "ch9_12_ez",
+    "url": "./assets/charts/individual/ch9_12_ez.bin",
+    "usize": 567293,
+    "sha256": "107ed138aebd96c14f5d442f362677498bb56fb1e7318b4188744a238b3ec75e"
+  },
+  {
+    "id": "ch9_12_hd",
+    "url": "./assets/charts/individual/ch9_12_hd.bin",
+    "usize": 293090,
+    "sha256": "c87e974a2ae0e8ff622f97730535e40eea232304ae0581d7ca4ec2d31b7717ee"
+  },
+  {
+    "id": "ch9_12_in",
+    "url": "./assets/charts/individual/ch9_12_in.bin",
+    "usize": 1566896,
+    "sha256": "51c47e044a3257d0764cb4161a63a687a459073e8823efb81ffb2c193ba1a6a6"
+  },
+  {
+    "id": "ch9_12_at",
+    "url": "./assets/charts/individual/ch9_12_at.bin",
+    "usize": 828570,
+    "sha256": "5fc132adfb470617061bec5339a37321e71cac3a5c027c3c092777fa5e7d3d86"
+  }
+]
