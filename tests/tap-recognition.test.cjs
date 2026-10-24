@@ -84,6 +84,63 @@ test('native snapshot or move can adopt a fallback contact without scoring twice
   }
 });
 
+test('a fast moved fallback finger is not reconstructed as a second Tap',()=>{
+  for(const changed of [true,false]){
+    const {probe:p,setNow}=playable([{type:1,time:40},{type:1,time:40.08}]);
+    p.pointerDown(pointer());setNow(1040);p.time=40.04;
+    p.pointerMove(pointer(11,{clientX:580,timeStamp:1040,buttons:1}));
+    const moved=touch(1,{clientX:580});
+    p.touchMove({changedTouches:changed?[moved]:[],touches:[moved],timeStamp:1040});
+    assert.equal(p.inputStats.edges,1,'one press plus movement must remain one down edge');
+    assert.equal(p.commits.length,1,'movement must not consume the following blue note');
+    assert.equal(p.pointer.size,1);assert.equal(p.pointer.get(-2).x,580);
+  }
+});
+
+test('motion handoff uses CSS coordinates even when the logical playfield is scaled and offset',()=>{
+  const {probe:p,setNow}=playable([{type:1,time:40},{type:1,time:40.08,_along:160}]);
+  Object.assign(p,{inputRect:{left:10,top:20},viewX:100,viewY:40,viewScale:.5});
+  p.pointerDown(pointer(11,{clientX:360,clientY:185}));setNow(1040);p.time=40.04;
+  p.pointerMove(pointer(11,{clientX:440,clientY:185,timeStamp:1040,buttons:1}));
+  const moved=touch(1,{clientX:440,clientY:185});
+  p.touchMove({changedTouches:[moved],touches:[moved],timeStamp:1040});
+  assert.equal(p.inputStats.edges,1);assert.equal(p.commits.length,1);
+  assert.equal(p.pointer.size,1);assert.equal(p.pointer.get(-2).x,660);assert.equal(p.pointer.get(-2).y,250);
+});
+
+test('two fast fingers retain their own latest positions and Hold owners during handoff',()=>{
+  const {probe:p,setNow}=playable([{type:3,time:40,end:42,_along:-100},{type:3,time:40,end:42,_along:100},{type:1,time:40.08}]);
+  p.pointerDown(pointer(11,{clientX:400}));p.pointerDown(pointer(12,{clientX:600}));
+  setNow(1040);p.time=40.04;
+  p.pointerMove(pointer(11,{clientX:480,timeStamp:1040,buttons:1}));
+  p.pointerMove(pointer(12,{clientX:520,timeStamp:1040,buttons:1}));
+  const first=touch(1,{clientX:480}),second=touch(2,{clientX:520});
+  p.touchMove({changedTouches:[first,second],touches:[first,second],timeStamp:1040});
+  assert.equal(p.inputStats.edges,2);assert.equal(p.pointer.size,2);
+  assert.equal(p.pointer.get(-2).x,480);assert.equal(p.pointer.get(-3).x,520);
+  assert.deepEqual(p.noteItems.filter(x=>x.n.type===3).map(x=>x.n.holdPointer),[-2,-3]);
+  assert.equal(p.commits.length,0,'a moving contact must not score the following Tap');
+});
+
+test('a cancelled provisional pointer can hand off without another Tap edge',()=>{
+  const {probe:p,setNow}=playable([{type:1,time:40},{type:1,time:40.04}]);
+  p.pointerDown(pointer());setNow(1002);p.pointerCancel(pointer(11,{timeStamp:1002}));
+  start(p,touch(),1002);
+  assert.equal(p.commits.length,1);assert.equal(p.inputStats.edges,1);
+  assert.equal(p.pointer.size,1);assert.equal(p.pointer.get(-2).active,true);
+});
+
+test('cancellation near a later motion sample retains the original down marker',()=>{
+  const {probe:p,setNow}=playable([{type:1,time:40},{type:1,time:40.24}]);
+  p.pointerDown(pointer());setNow(1200);p.time=40.2;
+  p.pointerMove(pointer(11,{clientX:580,timeStamp:1200,buttons:1}));
+  setNow(1202);p.pointerCancel(pointer(11,{timeStamp:1202}));
+  setNow(1204);const moved=touch(1,{clientX:580});
+  p.touchMove({changedTouches:[moved],touches:[moved],timeStamp:1204});
+  assert.equal(p.inputStats.edges,1);assert.equal(p.commits.length,1);
+  assert.equal(p.pointer.size,1);assert.equal(p.pointer.get(-2).active,true);
+});
+
 test('multi-finger chords keep one edge and one contact for every finger',()=>{
   const {probe:p}=playable(Array.from({length:6},()=>({type:1,time:40})));
   const touches=Array.from({length:6},(_,i)=>touch(i,{clientX:400+i*35}));

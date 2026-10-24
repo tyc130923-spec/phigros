@@ -4,7 +4,7 @@
   // Older cached HTML can request the new app before it knows about this small
   // dependency. Load it once so an update cannot strand an existing player.
   if(!globalThis.PhiPerformance)await new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='./js/performance-policy.js?v=4.0.1.2-input-5';
+    const script=document.createElement('script');script.src='./js/performance-policy.js?v=4.0.1.2-input-6';
     script.onload=resolve;script.onerror=()=>reject(Error('性能组件加载失败，请刷新页面'));document.head.appendChild(script);
   });
   let phiExportViewport=null;
@@ -26,10 +26,10 @@
    * Builder 与独立游戏均从同一份 Runtime 模板生成，避免版本漂移。
    */
   const PHI_VERSIONS = Object.freeze({
-    runtime: "4.0.1.2-input-5",
+    runtime: "4.0.1.2-input-6",
     parser: "9.0-native-sus",
     renderEngine: "38.3-safari-caption-baseline",
-    buildTimestamp: "2026-10-23T14:56:48Z",
+    buildTimestamp: "2026-10-24T03:11:31Z",
     coreSha256: "dcae237af6ee34b393b4ceea31605c87aaf0d0b737c95da89cc12e9cd5dbe677",
   });
   const PHI_SECURITY_LIMITS = Object.freeze({
@@ -8324,6 +8324,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       const el = document.createElement("div");
       el.id = "phiPerformanceOverlay";
       el.className = "phiPerfOverlay hidden";
+      el.textContent = "开始游玩后显示输入与帧率详情";
       document.body.appendChild(el);
       this.el = el;
       return el;
@@ -8389,11 +8390,14 @@ function withTimeout(promise, ms, message = "操作超时") {
         low = p99 ? 1000 / p99 : 0;
       const el = this.ensureElement();
       el.textContent = [
+        `修复版本 ${PHI_VERSIONS.runtime}`,
         `FPS ${fullFps.toFixed(1)} | 1% low ${low.toFixed(1)}`,
         `Frame ${avg.toFixed(2)} ms | Max ${this.max.toFixed(2)} ms | Work ${Number(workCost || 0).toFixed(2)} ms | Draw ${Number(drawCost || 0).toFixed(2)} ms`,
         `帧稳定：音频时钟直驱 | 输入几何独立 | 画布按设备预算固定`,
         `rAF 实测 ${detectedHz ? detectedHz.toFixed(1) + " Hz" : "探测中"} | 帧预算 ${engine?.systemFrameTargetMs ? engine.systemFrameTargetMs.toFixed(2) : "8.33"} ms`,
-        `Tap 输入 ${engine?.inputStats?.edges || 0} | 命中 ${engine?.inputStats?.accepted || 0} | 无候选 ${engine?.inputStats?.noCandidate || 0} | 噪域 ${engine?.inputStats?.blocked || 0} | 早 Bad 保护 ${engine?.inputStats?.earlyGuard || 0}`,
+        engine?.chart?.kind === "pjsk"
+          ? `点按接收 ${engine?.inputStats?.edges || 0} | PJSK 判定见游戏分数`
+          : `点按接收 ${engine?.inputStats?.edges || 0} | 蓝键/长条 ${engine?.inputStats?.accepted || 0} | 无候选 ${engine?.inputStats?.noCandidate || 0} | 噪域 ${engine?.inputStats?.blocked || 0} | 早 Bad 保护 ${engine?.inputStats?.earlyGuard || 0}`,
         `输入接管 ${engine?.inputStats?.bridges || 0} | 补收 ${engine?.inputStats?.recovered || 0} | 最大派发延迟 ${Number(engine?.inputStats?.maxDispatchMs || 0).toFixed(1)} ms`,
         `判定候选 ${engine?.metricsCandidates || 0} | 空间候选 ${engine?.metricsIndexedCandidates || 0} / ${engine?.noteItems?.length || 0} | 实绘 ${engine?.metricsDrawnNotes || 0}`,
         `粒子 ${engine?.effects?.length || 0} | DPR ${Number(engine?.baseDpr || 1).toFixed(2)} × ${Number(engine?.renderQuality || 1).toFixed(2)} | backing ${engine?.canvas?.dataset?.backingSize || "--"}`,
@@ -8408,6 +8412,11 @@ function withTimeout(promise, ms, message = "操作超时") {
     toggle(force) {
       this.visible = force == null ? !this.visible : !!force;
       this.ensureElement().classList.toggle("hidden", !this.visible);
+      const button = $("#inputDiagnosticsBtn");
+      if (button) {
+        button.setAttribute("aria-pressed",String(this.visible));
+        button.textContent = this.visible ? "关闭输入与帧率详情" : "输入与帧率详情";
+      }
     }
   }
   const performanceMonitor = new PerformanceMonitor();
@@ -11524,26 +11533,34 @@ function withTimeout(promise, ms, message = "操作超时") {
       p.lastFlickAt = 0;
       return p;
     }
-    findTouchBridge(clientX, clientY, stamp, native) {
+    findTouchBridge(clientX, clientY, stamp, native, motion = false) {
       let best = null, bestDistance = 24 * 24;
       for (const p of this.pointer.values()) {
-        if (p.active === false || p.nativeTouch !== native ||
+        const cancelledFallback = !native && p.cancelled && p.ghostUntil > performance.now()/1000 && Math.abs(stamp-(motion?p.lastT:p.downT)) <= 12;
+        if ((p.active === false && !cancelledFallback) || p.nativeTouch !== native ||
             (native ? p.pointerAlias != null : !p.touchPointer) ||
             // The reverse-order match must be tight: an older native-only
             // finger must not consume a new nearby finger's pointerdown.
-            Math.abs(stamp - p.downT) > (native ? 12 : 80)) continue;
-        const distance = (clientX-p.downClientX)**2 + (clientY-p.downClientY)**2;
+            Math.abs(stamp - (motion ? p.lastT : p.downT)) > (native ? 12 : 80)) continue;
+        // A missing touchstart may first surface as touchmove after a fast
+        // swipe. Match the latest pointer sample, not the now-distant down point.
+        const px = motion ? this.inputRect.left+this.viewX+p.x*this.viewScale : p.downClientX,
+          py = motion ? this.inputRect.top+this.viewY+p.y*this.viewScale : p.downClientY,
+          distance = (clientX-px)**2 + (clientY-py)**2;
         if (distance <= bestDistance) { best = p; bestDistance = distance; }
       }
       return best;
     }
-    adoptNativeTouch(touch, stamp) {
-      const p = this.findTouchBridge(touch.clientX,touch.clientY,this.eventPerformanceTime(stamp),false);
+    adoptNativeTouch(touch, stamp, motion = false) {
+      const at = this.eventPerformanceTime(stamp),
+        p = this.findTouchBridge(touch.clientX,touch.clientY,at,false,motion) ||
+          (motion ? this.findTouchBridge(touch.clientX,touch.clientY,at,false) : null);
       if (!p) return this.acquireTouchState(touch,stamp);
       const oldId = p.id, pid = this.touchPointerId(touch);
       this.pointer.delete(oldId);
       p.id = pid; p.nativeTouch = true; p.pointerAlias = oldId;
-      p.nativeDownT = this.eventPerformanceTime(stamp);
+      p.nativeDownT = at;
+      p.active = true; p.cancelled = false; p.ghostUntil = 0;
       (this.nativePointerLinks ||= new Map()).set(oldId,pid);
       // The earlier PointerEvent may already own a Hold or armed special note.
       // Hand off the same contact, including its noise-area latch, atomically.
@@ -11579,7 +11596,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     }
     recoverNativeTouchSnapshot(
       e,
-      { synthesizeMissingDown = false, reconcileMissing = false, reviveLive = true } = {},
+      { synthesizeMissingDown = false, reconcileMissing = false, reviveLive = true, motion = false } = {},
     ) {
       if (!this.useNativeTouchInput || !e || e.touches == null) return false;
       const touches = e.touches, live = this.nativeTouchLiveIds;
@@ -11621,7 +11638,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         // made blue Tap/Hold starts impossible until that finger moved. A missing
         // contact first observed on start/move now receives exactly one reconstructed
         // down edge, then becomes an ordinary independent contact.
-        p = this.adoptNativeTouch(touch, e.timeStamp);
+        p = this.adoptNativeTouch(touch, e.timeStamp, motion);
         this.pointer.set(pid, p);
         if (synthesizeMissingDown) {
           this.judgeContactDown(p,eventAudioTime,true);
@@ -11782,9 +11799,9 @@ function withTimeout(promise, ms, message = "操作超时") {
             this.nativeTouchBlocked.add(pid);
             continue;
           }
-          p = this.adoptNativeTouch(touch, e.timeStamp);
+          p = this.adoptNativeTouch(touch, e.timeStamp, true);
           this.pointer.set(pid, p);
-          recovered = true;
+          recovered = !p.downJudged;
         }
         if (!p) continue;
         tracked = true;
@@ -11803,7 +11820,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         this.processNativeTouchMotion(touch, p, eventAudioTime, now);
       }
       this.recoverNativeTouchSnapshot(e, {
-        synthesizeMissingDown: true, reconcileMissing: true, reviveLive: true,
+        synthesizeMissingDown: true, reconcileMissing: true, reviveLive: true, motion: true,
       });
       if (!this.nativeTouchMovePassive && (tracked || this.pointer.size) && e.cancelable) e.preventDefault();
     }
@@ -15038,6 +15055,10 @@ function withTimeout(promise, ms, message = "操作超时") {
 
 
   function installNextUI() {
+    const inputDiagnostics = $("#inputDiagnosticsBtn");
+    if (inputDiagnostics) inputDiagnostics.onclick = () => performanceMonitor.toggle();
+    const inputVersion = $("#inputDiagnosticsVersion");
+    if (inputVersion) inputVersion.textContent = ` 当前修复版本：${PHI_VERSIONS.runtime}`;
     const dialog = $("#dialog");
     dialog?.setAttribute("role", "dialog"); dialog?.setAttribute("aria-modal", "true"); dialog?.setAttribute("aria-labelledby", "dialogTitle");
     dialog?.addEventListener("keydown", (event) => {
