@@ -4,7 +4,7 @@
   // Older cached HTML can request the new app before it knows about this small
   // dependency. Load it once so an update cannot strand an existing player.
   if(!globalThis.PhiPerformance)await new Promise((resolve,reject)=>{
-    const script=document.createElement('script');script.src='./js/performance-policy.js?v=4.0.1.2-input-6';
+    const script=document.createElement('script');script.src='./js/performance-policy.js?v=4.0.1.2-input-8';
     script.onload=resolve;script.onerror=()=>reject(Error('性能组件加载失败，请刷新页面'));document.head.appendChild(script);
   });
   let phiExportViewport=null;
@@ -26,10 +26,10 @@
    * Builder 与独立游戏均从同一份 Runtime 模板生成，避免版本漂移。
    */
   const PHI_VERSIONS = Object.freeze({
-    runtime: "4.0.1.2-input-6",
+    runtime: "4.0.1.2-input-8",
     parser: "9.0-native-sus",
     renderEngine: "38.3-safari-caption-baseline",
-    buildTimestamp: "2026-10-24T03:11:31Z",
+    buildTimestamp: "2026-10-24T04:14:45Z",
     coreSha256: "dcae237af6ee34b393b4ceea31605c87aaf0d0b737c95da89cc12e9cd5dbe677",
   });
   const PHI_SECURITY_LIMITS = Object.freeze({
@@ -6140,14 +6140,23 @@ function withTimeout(promise, ms, message = "操作超时") {
     const missing = required.filter(file => file.asset != null && !BUILTIN_ASSET_MAP.has(String(file.asset)));
     if (missing.length) throw new Error('资源清单缺失：' + missing[0].asset);
   }
-  async function materializeBuiltinAsset(assetId, name = "") {
+  async function materializeBuiltinAsset(assetId, name = "", {signal} = {}) {
     const key = String(assetId);
     if (builtinAssetBlobCache.has(key)) return builtinAssetBlobCache.get(key);
     const pending = (async () => {
       const spec = BUILTIN_ASSET_MAP.get(key);
       if (!spec) throw new Error(`内置去重资源索引不存在：${key}`);
+      let workerUnavailable=false;
+      if(Number(spec.method)===14&&typeof Worker==='function'&&globalThis.PhiHostedMedia?.loadChart){
+        try{
+          const bytes=await PhiHostedMedia.loadChart(spec,{signal,onProgress:(done,total,stage)=>{
+            if(!$('#loadingView')?.classList.contains('hidden'))setLoadingStatus(stage==='decode'?'谱面处理中…':total?`谱面 ${Math.min(100,Math.round(done/total*100))}%`:`谱面已读取 ${Math.ceil(done/1024)} KB`);
+          }});
+          return new Blob([bytes],{type:mimeForEmbeddedName(name)});
+        }catch(error){if(error.name!=='WorkerUnavailableError')throw error;workerUnavailable=true;Diagnostics.warn('Chart.worker',error.message);}
+      }
       const packed = await phiHostedAssetBytes(spec);
-      if(Number(spec.method)===14&&typeof Worker==='function'&&globalThis.PhiHostedMedia?.decodeChart){
+      if(!workerUnavailable&&Number(spec.method)===14&&typeof Worker==='function'&&globalThis.PhiHostedMedia?.decodeChart){
         try{
           const bytes=await PhiHostedMedia.decodeChart(packed,Number(spec.usize)||0);
           return new Blob([bytes],{type:mimeForEmbeddedName(name)});
@@ -6255,7 +6264,7 @@ function withTimeout(promise, ms, message = "操作超时") {
   }
   const builtinLoadPromises = new Map();
   const builtinStreamingRecords = new PhiPerformance.ResourceCache(8*1024*1024,6);
-  async function materializeStreamingBuiltinPack(entry) {
+  async function materializeStreamingBuiltinPack(entry, {signal} = {}) {
     if (builtinStreamingRecords.has(entry.id)) return builtinStreamingRecords.get(entry.id);
     const pending = (async () => {
       const chartFile=entry.files.find(file=>file.name===entry.meta?.chart),
@@ -6263,10 +6272,9 @@ function withTimeout(promise, ms, message = "操作超时") {
         artFile=entry.files.find(file=>file.name===entry.meta?.illustration),
         stream=PhiHostedMedia.manifest.audio[audioFile?.asset];
       if (!chartFile || !stream) throw Error('内置曲目清单不完整');
-      const [chartBlob,bgBlob] = await Promise.all([
-        materializeBuiltinAsset(chartFile.asset,chartFile.name),
-        artFile ? PhiHostedMedia.artwork(artFile.asset,{maxStage:0}).catch(()=>null) : null
-      ]);
+      // The selected cover is already available from the library. A slow,
+      // optional thumbnail request must never hold the playable chart hostage.
+      const chartBlob=await materializeBuiltinAsset(chartFile.asset,chartFile.name,{signal}),bgBlob=null;
       return {id:`builtin:${entry.id}`,builtinEntryId:entry.id,builtin:true,name:entry.name,sourceName:entry.sourceName,
         parser:entry.parser,chartText:await blobText(chartBlob),chartFileName:chartFile.name,
         meta:normalizeMeta({...entry.meta}),audioHash:entry.audioHash,scoreIdentity:entry.scoreIdentity,
@@ -6278,7 +6286,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     try { const record=await pending;builtinStreamingRecords.setWeight(entry.id,record.chartText.length*2+(record.bgBlob?.size||0));return record; } catch(error) { builtinStreamingRecords.delete(entry.id); throw error; }
   }
   async function materializeBuiltinPack(entry, options = null) {
-    if(options?.streaming && globalThis.PhiHostedMedia && Array.isArray(entry.files))return materializeStreamingBuiltinPack(entry);
+    if(options?.streaming && globalThis.PhiHostedMedia && Array.isArray(entry.files))return materializeStreamingBuiltinPack(entry,options);
     if (builtinRecordCache.has(entry.id)) return builtinRecordCache.get(entry.id);
     if (builtinLoadPromises.has(entry.id)) return builtinLoadPromises.get(entry.id);
     const pending = materializeBuiltinPackOnce(entry);
@@ -6314,19 +6322,22 @@ function withTimeout(promise, ms, message = "操作超时") {
   }
   async function startBuiltinPack(entry, playOptions = null) {
     const token = ++songLoadToken;
-    let stream=null;
+    let stream=null,streamReady=null;
     try {
       const audioFile=entry.files?.find(file=>file.name===entry.meta?.music),spec=globalThis.PhiHostedMedia?.manifest.audio[audioFile?.asset];
       if(spec&&!playOptions?.offlineExport){
         const audio=Engine._primedMusicElement||new Audio();Engine._primedMusicElement=null;
         stream=new PhiHostedMedia.Stream(audio,spec,state=>setLoadingStatus(`音乐已缓冲 ${state.ahead.toFixed(1)} 秒 · 目标 ${Math.ceil(state.target)} 秒`));
         songLoadStream=stream;
+        streamReady=stream.wait();streamReady.catch(()=>{});
       }
-      const [record] = await Promise.all([materializeBuiltinPack(entry,{streaming:!playOptions?.offlineExport}),beginLoadingPresentation(entry, libraryFocusBgBlob)]);
-      const rec = {...record,_preparedStream:stream};
+      const preparation=Promise.all([ensureBuiltinMaterialForPlay(),loadSavedOrAdjacentOfficialFont()]);
+      preparation.catch(()=>{});
+      const [record] = await Promise.all([materializeBuiltinPack(entry,{streaming:!playOptions?.offlineExport,signal:stream?.controller.signal}),beginLoadingPresentation(entry, libraryFocusBgBlob)]);
+      const rec = {...record,bgBlob:record.bgBlob||libraryFocusBgBlob,_preparedStream:stream,_streamReady:streamReady};
       assertSongLoad(token);
       updateLoadingPresentation(rec, libraryFocusBgBlob);
-      await startChart(rec, true, {...playOptions,loadToken:token});
+      await startChart(rec, true, {...playOptions,loadToken:token,preparation});
     } catch (e) {
       stream?.destroy();
       if(stream){stream.audio.pause();stream.audio.removeAttribute('src');stream.audio.load();}
@@ -8357,7 +8368,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         this.capNoticeShown = false;
       }
     }
-    frame(engine, interval, drawCost, workCost, now) {
+    frame(engine, interval, drawCost, workCost, now, force = false) {
       if (Number.isFinite(interval) && interval > 0) {
         this.samples[this.index++ % this.samples.length] = interval;
         this.count = Math.min(this.count + 1, this.samples.length);
@@ -8367,7 +8378,7 @@ function withTimeout(promise, ms, message = "操作超时") {
           : interval;
       }
       if (!this.visible && !this.miniEnabled) return;
-      if (now < this.nextPaint) return;
+      if (!force && now < this.nextPaint) return;
       this.nextPaint = now + FPS_MINI_PAINT_MS;
       const fps = this.intervalEma ? 1000 / this.intervalEma : 0,
         detectedHz = highRefreshController.measuredHz();
@@ -8399,6 +8410,8 @@ function withTimeout(promise, ms, message = "操作超时") {
           ? `点按接收 ${engine?.inputStats?.edges || 0} | PJSK 判定见游戏分数`
           : `点按接收 ${engine?.inputStats?.edges || 0} | 蓝键/长条 ${engine?.inputStats?.accepted || 0} | 无候选 ${engine?.inputStats?.noCandidate || 0} | 噪域 ${engine?.inputStats?.blocked || 0} | 早 Bad 保护 ${engine?.inputStats?.earlyGuard || 0}`,
         `输入接管 ${engine?.inputStats?.bridges || 0} | 补收 ${engine?.inputStats?.recovered || 0} | 最大派发延迟 ${Number(engine?.inputStats?.maxDispatchMs || 0).toFixed(1)} ms`,
+        `原始按下 Pointer ${engine?.inputStats?.pointerDown || 0} / Touch ${engine?.inputStats?.touchStart || 0} | 缓冲中按下 ${engine?.inputStats?.buffered || 0}`,
+        engine?.streamSession ? `音乐/谱面时钟差 ${((Number(engine.clockValue||0)-Number(engine.audio?.currentTime||0))*1000).toFixed(1)} ms | 音乐缓冲 ${PhiHostedMedia.bufferedAhead(engine.audio).toFixed(1)} 秒` : `音频后端 ${engine?.musicUsingWebAudio?'Web Audio':'媒体元素'}`,
         `判定候选 ${engine?.metricsCandidates || 0} | 空间候选 ${engine?.metricsIndexedCandidates || 0} / ${engine?.noteItems?.length || 0} | 实绘 ${engine?.metricsDrawnNotes || 0}`,
         `粒子 ${engine?.effects?.length || 0} | DPR ${Number(engine?.baseDpr || 1).toFixed(2)} × ${Number(engine?.renderQuality || 1).toFixed(2)} | backing ${engine?.canvas?.dataset?.backingSize || "--"}`,
         `抖动帧 ${engine?.jankFrames || 0} | 判定邻近抖动 ${engine?.hitJankFrames || 0} | Audio ${Engine._hitMixer ? "Worklet Mixer" : "BufferSource fallback"}`,
@@ -8409,6 +8422,11 @@ function withTimeout(promise, ms, message = "操作超时") {
       const values = Array.from(this.samples.subarray(0, this.count)).filter((value) => value > 0).sort((a, b) => a - b), pick = (q) => values.length ? values[Math.min(values.length - 1, Math.floor(values.length * q))] : 0;
       return { samples: values.length, p50: pick(0.5), p95: pick(0.95), p99: pick(0.99), max: values.length ? values[values.length - 1] : 0, longTasks: this.longTasks };
     }
+    refresh(source) {
+      if (!source) return;
+      // Paint the latest input counters without inventing a frame-time sample.
+      this.frame(source,0,source.drawCostAvg||0,source.frameWorkAvg||0,performance.now(),true);
+    }
     toggle(force) {
       this.visible = force == null ? !this.visible : !!force;
       this.ensureElement().classList.toggle("hidden", !this.visible);
@@ -8417,6 +8435,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         button.setAttribute("aria-pressed",String(this.visible));
         button.textContent = this.visible ? "关闭输入与帧率详情" : "输入与帧率详情";
       }
+      if (this.visible && typeof engine === "object" && engine) this.refresh(engine);
     }
   }
   const performanceMonitor = new PerformanceMonitor();
@@ -8810,6 +8829,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.musicBuffer = null;
       this.streamSession = preparedStream;
       this.streamBuffering=false;this.streamRecoveryPending=false;this.streamRecoveryAbort=null;
+      this.inputClockPauses=[];
       this.musicSource = null;
       this.musicGain = null;
       this.musicUsingWebAudio = false;
@@ -8838,7 +8858,9 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.nativeTouchLiveIds = new Set();
       this.nativeTouchChangedIds = new Set();
       this.nativePointerLinks = new Map();
-      this.inputStats = { pointerDown:0, touchStart:0, edges:0, accepted:0, noCandidate:0, blocked:0, earlyGuard:0, bridges:0, recovered:0, maxDispatchMs:0 };
+      this.inputDownReceipts = [];
+      this.nativeTouchEndedAt = new Map();
+      this.inputStats = { pointerDown:0, touchStart:0, edges:0, accepted:0, noCandidate:0, blocked:0, earlyGuard:0, bridges:0, recovered:0, buffered:0, maxDispatchMs:0 };
       // On iPadOS/Safari the surface already owns gestures through touch-action:none.
       // Let high-frequency touchmove stay passive so WebKit never waits for JS before
       // compositor progress; touchstart/gesturestart remain cancelable arbitration gates.
@@ -9258,33 +9280,41 @@ function withTimeout(promise, ms, message = "操作超时") {
     }
     async recoverStreamBuffer(){
       if(!this.streamSession||!this.running||this.paused||this.starting||this.resumePending||this.streamRecoveryPending||this.musicDuration()-this.musicCurrentTime()<.3)return;
+      if(this.audio.readyState>=3||PhiHostedMedia.bufferedAhead(this.audio)>.25)return;
       const session=this.streamSession,token=this.transitionToken,status=$('#streamBufferStatus'),cancellation=new AbortController();
       const active=()=>this.running&&!this.paused&&!this.starting&&!this.resumePending&&this.transitionToken===token;
       this.streamRecoveryPending=true;this.streamRecoveryAbort=cancellation;
-      let began=0;
+      let began=performance.now(),recovered=false;
+      const pauses=this.inputClockPauses||=[],pauseInterval={start:began,end:Infinity};
+      pauses.push(pauseInterval);if(pauses.length>64)pauses.shift();
+      this.streamBuffering=true;this.cancelLoop();this.syncClock(true);
+      if(status){status.textContent='音乐缓冲中（谱面同步暂停）';status.classList.remove('hidden');}
       try{
         // A seek or decoder hiccup can emit waiting with playable audio still in
         // the buffer. Do not interrupt a chord for a transient notification.
         await sleep(180);
         if(!active()||document.hidden||this.audio.readyState>=3||PhiHostedMedia.bufferedAhead(this.audio)>.25)return;
-        this.streamBuffering=true;began=performance.now();
-        this.cancelLoop();this.pauseMusic();this.syncClock(true);this.draw(this.time);
+        this.pauseMusic();this.syncClock(true);this.draw(this.time);
         if(status){status.textContent='正在缓冲音乐…';status.classList.remove('hidden');}
         session.onProgress=state=>{if(active()&&status)status.textContent=`正在缓冲音乐… ${state.ahead.toFixed(1)} 秒`;};
         this.streamStalls=(this.streamStalls||0)+1;
-        await session.wait(Math.min(30,12+this.streamStalls*4),{signal:cancellation.signal});
+        await session.wait(Math.min(12,4+this.streamStalls*2),{signal:cancellation.signal});
         if(!active()||document.hidden)return;
         // Keep the same media position and all live contacts. In particular this
         // must not use manual pause/resume, which clears fingers and seeks again.
         await withTimeout(this.audio.play(),5000,'音乐恢复播放未响应');
         if(!active()||document.hidden){if(this.paused||!this.running)this.audio.pause();return;}
-        this.rebaseBufferedInput(began,performance.now());
+        this.rebaseBufferedInput(began,performance.now());recovered=true;
         this.syncClock(true);this.visualTime=NaN;this.lastFramePerf=0;
       }catch(error){
         if(error.name!=='AbortError'&&active()){
           this.pause('buffering-error');toast(error.message,true,6500);
         }
       }finally{
+        pauseInterval.end=performance.now();
+        if(!recovered&&active()){
+          this.rebaseBufferedInput(began,performance.now());this.syncClock(true);this.visualTime=NaN;this.lastFramePerf=0;
+        }
         session.onProgress=null;this.streamRecoveryPending=false;this.streamBuffering=false;this.streamRecoveryAbort=null;
         if(engine===this&&status)status.classList.add('hidden');
         if(active()&&!document.hidden)this.scheduleLoop();
@@ -9817,7 +9847,7 @@ function withTimeout(promise, ms, message = "操作超时") {
             setLoadingStatus(`音乐已缓冲 ${state.ahead.toFixed(1)} 秒 · 目标 ${Math.ceil(state.target)} 秒`);
             const status=$('#streamBufferStatus');if(status)status.textContent=`正在缓冲音乐… ${state.ahead.toFixed(1)} 秒`;
           };
-          await this.streamSession.wait();
+          await (this.record._streamReady || this.streamSession.wait());
           this.streamSession.onProgress=null;
           this.bound.streamWaiting=()=>this.recoverStreamBuffer();
           this.audio.addEventListener('waiting',this.bound.streamWaiting);
@@ -10411,21 +10441,22 @@ function withTimeout(promise, ms, message = "操作超时") {
       }
       let predicted = this.clockValue + dt * rate,
         drift = actual - predicted;
-      const stalled =
-        this.audio.readyState < 3 &&
-        now - this.clockLastMediaPerf > SYNC_STALL_GUARD;
+      const stalled = this.streamBuffering || this.audio.paused ||
+        this.audio.readyState < 3 || now - this.clockLastMediaPerf > SYNC_STALL_GUARD;
       // HTMLMediaElement.currentTime is commonly published at 60 Hz even when
       // requestAnimationFrame runs at 120 Hz. Correcting toward every quantized
       // media sample produces a sawtooth clock: alternate frames move and pause.
       // Between real discontinuities, performance.now() is the stable oscillator;
       // only snap on seek/stall or a drift large enough to represent a true jump.
-      if (this.audio.seeking || Math.abs(drift) > 0.05) predicted = actual;
-      else if (stalled) predicted = Math.min(predicted, actual + 0.004);
-      this.clockDrift = Math.abs(drift) > 0.05 ? drift : 0;
+      if (stalled || this.audio.seeking || Math.abs(drift) > 0.05) predicted = actual;
+      else predicted = clamp(predicted,actual-.004,actual+.025);
+      this.clockDrift = 0;
       const cap = Number.isFinite(this.audio.duration)
         ? this.audio.duration
         : Infinity;
-      this.clockValue = clamp(Math.max(this.clockValue, predicted), 0, cap);
+      // Never keep an old predicted lead when the actual media clock stalls or
+      // seeks back. That made the chart judge ahead of music on weak links.
+      this.clockValue = clamp(predicted, 0, cap);
       return this.clockValue;
     }
     audioTime() {
@@ -10550,6 +10581,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.cancelLoop();
       this.stopMusic(true);
       this.nativeNoiseAudio=null;
+      this.inputClockPauses=[];
       if(this.noiseAudioNode?.parameters)this.noiseAudioNode.parameters.get('cutoff').value=0;
       this.usedModeSwitch = false;
       this.clockReady = false;
@@ -10790,6 +10822,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       $("#pauseMoreSheet")?.setAttribute("aria-hidden", "true");
       $("#pausePanel").classList.remove("hidden");
       syncPauseTransportUI(this); syncPausedPjskControls();
+      performanceMonitor.refresh(this);
     }
     async resume() {
       if (!this.paused || this.resumePending || this.starting) return;
@@ -11518,6 +11551,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       p.downJudged = false;
       p.downT = now;
       p.nativeDownT = now;
+      p.downReceipt = null;
       p.downClientX = touch.clientX; p.downClientY = touch.clientY;
       p.noiseBlocked = false;
       p.cancelled = false;
@@ -11533,11 +11567,30 @@ function withTimeout(promise, ms, message = "操作超时") {
       p.lastFlickAt = 0;
       return p;
     }
-    findTouchBridge(clientX, clientY, stamp, native, motion = false) {
+    matchDownReceipt(native, id, clientX, clientY, at) {
+      const records=this.inputDownReceipts||[],seen=native?'touchSeen':'pointerSeen',other=native?'pointerSeen':'touchSeen';
+      let best=null,score=Infinity;
+      for(let i=records.length-1;i>=0;i--){
+        const r=records[i],dt=Math.abs(at-r.at),distance=(clientX-r.x)**2+(clientY-r.y)**2;
+        const within=r.recovered ? at>=r.earliestAt-1&&at<=r.at+12 : dt<=12;
+        if(r[seen]||!r[other]||!within||distance>36)continue;
+        const rank=dt+distance*.01;if(rank<score){best=r;score=rank;}
+      }
+      if(best){best[seen]=true;best[native?'touchId':'pointerId']=id;if(best.recovered){best.at=at;best.recovered=false;}}
+      return best;
+    }
+    rememberDownReceipt(p, recovered = false) {
+      const records=this.inputDownReceipts||=([]),native=!!p.nativeTouch;
+      const r={at:p.downT,x:p.downClientX,y:p.downClientY,pointerSeen:!native,touchSeen:native,
+        pointerId:native?null:p.id,touchId:native?p.id:null,ended:false,endAt:Infinity,recovered,
+        earliestAt:recovered?Math.min(p.downT,this.nativeTouchSnapshotTime??p.downT-250):p.downT-12};
+      records.push(r);if(records.length>128)records.shift();p.downReceipt=r;return r;
+    }
+    findTouchBridge(clientX, clientY, stamp, native, motion = false, after = -Infinity) {
       let best = null, bestDistance = 24 * 24;
       for (const p of this.pointer.values()) {
         const cancelledFallback = !native && p.cancelled && p.ghostUntil > performance.now()/1000 && Math.abs(stamp-(motion?p.lastT:p.downT)) <= 12;
-        if ((p.active === false && !cancelledFallback) || p.nativeTouch !== native ||
+        if (p.downT<after-1 || (p.active === false && !cancelledFallback) || p.nativeTouch !== native ||
             (native ? p.pointerAlias != null : !p.touchPointer) ||
             // The reverse-order match must be tight: an older native-only
             // finger must not consume a new nearby finger's pointerdown.
@@ -11551,16 +11604,22 @@ function withTimeout(promise, ms, message = "操作超时") {
       }
       return best;
     }
-    adoptNativeTouch(touch, stamp, motion = false) {
+    adoptNativeTouch(touch, stamp, motion = false, receipt = null) {
       const at = this.eventPerformanceTime(stamp),
-        p = this.findTouchBridge(touch.clientX,touch.clientY,at,false,motion) ||
-          (motion ? this.findTouchBridge(touch.clientX,touch.clientY,at,false) : null);
-      if (!p) return this.acquireTouchState(touch,stamp);
+        after=Math.max(this.nativeTouchEndedAt?.get(this.touchPointerId(touch))??-Infinity,this.nativeTouchSnapshotTime??-Infinity),
+        p = receipt ? this.pointer.get(receipt.pointerId) : this.findTouchBridge(touch.clientX,touch.clientY,at,false,motion,after) ||
+          (motion ? this.findTouchBridge(touch.clientX,touch.clientY,at,false,false,after) : null);
+      if (!p) {
+        const fresh=this.acquireTouchState(touch,stamp);
+        if(receipt){fresh.downReceipt=receipt;fresh.downJudged=true;}
+        return fresh;
+      }
       const oldId = p.id, pid = this.touchPointerId(touch);
       this.pointer.delete(oldId);
       p.id = pid; p.nativeTouch = true; p.pointerAlias = oldId;
       p.nativeDownT = at;
       p.active = true; p.cancelled = false; p.ghostUntil = 0;
+      if(p.downReceipt)p.downReceipt.touchId=pid;
       (this.nativePointerLinks ||= new Map()).set(oldId,pid);
       // The earlier PointerEvent may already own a Hold or armed special note.
       // Hand off the same contact, including its noise-area latch, atomically.
@@ -11574,6 +11633,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     }
     judgeContactDown(p, audioT, recovered = false) {
       if (p.downJudged) return;
+      if (!p.downReceipt) this.rememberDownReceipt(p,recovered);
       p.downJudged = true;
       if (recovered && this.inputStats) this.inputStats.recovered++;
       this.tryTap(p.id,p.x,p.y,audioT);
@@ -11586,12 +11646,12 @@ function withTimeout(promise, ms, message = "操作超时") {
       const target = e.target instanceof Element ? e.target : null;
       if ((this.pointer.size || target?.closest('#gameView')) && e.cancelable) e.preventDefault();
     }
-    releaseNativeTouchContact(pid, p, nowSec = performance.now() / 1000) {
+    releaseNativeTouchContact(pid, p, nowSec = performance.now() / 1000, eventTime = nowSec*1000) {
       if (!p) return false;
       for (const item of this.activeHolds)
         if (item.n.holdPointer === pid) item.n.releaseAt = Math.min(Number(item.n.releaseAt) || Infinity, nowSec);
       this.pointer.delete(pid);
-      this.releasePointerState(p);
+      this.releasePointerState(p,eventTime);
       return true;
     }
     recoverNativeTouchSnapshot(
@@ -11607,6 +11667,20 @@ function withTimeout(promise, ms, message = "操作超时") {
         const touch = touches[i], pid = this.touchPointerId(touch);
         live.add(pid);
         if (this.nativeTouchBlocked.has(pid)) continue;
+        const at=this.eventPerformanceTime(e);
+        let latest=null;
+        for(const r of this.inputDownReceipts||[])if(r.touchId===pid&&r.at<=at&&(!latest||r.at>latest.at))latest=r;
+        // The other API may deliver an old live snapshot after a real lift.
+        // That snapshot must not resurrect the ended finger as a new Tap.
+        if(latest?.ended&&at<=latest.endAt)continue;
+        let unpaired=null;
+        const after=Math.max(this.nativeTouchEndedAt?.get(pid)??-Infinity,this.nativeTouchSnapshotTime??-Infinity);
+        for(const r of this.inputDownReceipts||[])if(r.pointerSeen&&r.touchId==null&&r.at>=after-1&&r.at<=at&&at<=r.endAt&&
+          (touch.clientX-r.x)**2+(touch.clientY-r.y)**2<=36&&(!unpaired||r.at>unpaired.at))unpaired=r;
+        if(unpaired){
+          unpaired.touchId=pid;
+          if(unpaired.ended){this.nativeTouchBlocked.add(pid);continue;}
+        }
         if (touch.target instanceof Element &&
             touch.target.closest("button,input,select,textarea,a,[contenteditable='true']")) {
           this.nativeTouchBlocked.add(pid);
@@ -11638,7 +11712,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         // made blue Tap/Hold starts impossible until that finger moved. A missing
         // contact first observed on start/move now receives exactly one reconstructed
         // down edge, then becomes an ordinary independent contact.
-        p = this.adoptNativeTouch(touch, e.timeStamp, motion);
+        p = this.adoptNativeTouch(touch, e.timeStamp, motion, unpaired);
         this.pointer.set(pid, p);
         if (synthesizeMissingDown) {
           this.judgeContactDown(p,eventAudioTime,true);
@@ -11648,17 +11722,23 @@ function withTimeout(promise, ms, message = "操作超时") {
       if (reconcileMissing) {
         const nowSec = performance.now() / 1000;
         for (const [pid, p] of this.pointer) {
-          if (!p?.nativeTouch || live.has(pid)) continue;
+          if(!p||p.downT>this.eventPerformanceTime(e)+.001)continue;
+          if(!p.nativeTouch){
+            if(p.touchPointer&&touches.length===0)this.releaseNativeTouchContact(pid,p,nowSec,this.eventPerformanceTime(e));
+            continue;
+          }
+          if (live.has(pid)) continue;
           if (p.cancelled && p.ghostUntil > nowSec) continue;
           // The inverse failure also occurs: touchend/cancel changedTouches can omit
           // one identifier. A state absent from authoritative `touches` must not
           // remain as a ghost active finger that steals Hold/Drag ownership.
-          this.releaseNativeTouchContact(pid, p, nowSec);
+          this.releaseNativeTouchContact(pid, p, nowSec, this.eventPerformanceTime(e));
           changedAny = true;
         }
         for (const pid of this.nativeTouchBlocked)
           if (!live.has(pid)) this.nativeTouchBlocked.delete(pid);
       }
+      this.nativeTouchSnapshotTime=Math.max(this.nativeTouchSnapshotTime||0,this.eventPerformanceTime(e));
       return changedAny;
     }
     touchStart(e) {
@@ -11666,8 +11746,8 @@ function withTimeout(promise, ms, message = "操作超时") {
         !this.useNativeTouchInput || !this.running || this.paused ||
         this.starting || this.resumePending || this.autoplay
       ) return;
-      if (this.inputStats) this.inputStats.touchStart++;
       const changed = e.changedTouches;
+      if (this.inputStats) this.inputStats.touchStart+=changed?.length||0;
       let accepted = false;
       const eventAudioTime = this.eventAudioTime(e);
       for (let i = 0; i < (changed?.length || 0); i++) {
@@ -11682,19 +11762,24 @@ function withTimeout(promise, ms, message = "操作超时") {
           continue;
         }
         this.nativeTouchBlocked.delete(pid);
+        const receipt=this.matchDownReceipt(true,pid,touch.clientX,touch.clientY,this.eventPerformanceTime(e));
+        if(receipt?.ended){this.nativeTouchBlocked.add(pid);accepted=true;continue;}
         // identifier reuse is legal after a finished contact. Replace any stale
         // state instead of swallowing a new physical finger.
         const stale = this.pointer.get(pid);
         if (stale) {
+          if(receipt&&stale.downReceipt===receipt){stale.downT=receipt.at;stale.nativeDownT=this.eventPerformanceTime(e);accepted=true;continue;}
           // The same edge can first appear in another finger's live snapshot.
           if (stale.active !== false && Math.abs(this.eventPerformanceTime(e)-stale.nativeDownT) <= 1) {
             accepted = true;
             continue;
           }
           this.pointer.delete(pid);
-          this.releasePointerState(stale);
+          this.releasePointerState(stale,this.eventPerformanceTime(e)-.001);
         }
-        const p = this.adoptNativeTouch(touch, e.timeStamp);
+        // A real native touchstart is a new edge unless an unpaired opposite
+        // source receipt proves otherwise. Nearby live fingers are independent.
+        const p = receipt ? this.adoptNativeTouch(touch,e.timeStamp,false,receipt) : this.acquireTouchState(touch,e.timeStamp);
         this.pointer.set(pid, p);
         this.judgeContactDown(p,eventAudioTime);
         accepted = true;
@@ -11827,6 +11912,9 @@ function withTimeout(promise, ms, message = "操作超时") {
     touchEnd(e) {
       if (!this.useNativeTouchInput) return;
       const changed = e.changedTouches;
+      const ended=this.nativeTouchEndedAt||=(new Map());
+      for(let i=0;i<(changed?.length||0);i++){const pid=this.touchPointerId(changed[i]);ended.set(pid,Math.max(ended.get(pid)||0,this.eventPerformanceTime(e)));}
+      while(ended.size>128)ended.delete(ended.keys().next().value);
       // event.touches excludes fingers that truly ended. Reconcile from it first so
       // even a missing changedTouches identifier cannot leave a stale active state.
       this.recoverNativeTouchSnapshot(e, {
@@ -11841,7 +11929,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         this.nativeTouchBlocked.delete(pid);
         // Normal changedTouches still gets an explicit release if the snapshot was
         // incomplete/non-standard. The helper is idempotent after reconciliation.
-        if (p) this.releaseNativeTouchContact(pid, p, now);
+        if (p&&p.downT<=this.eventPerformanceTime(e)+.001) this.releaseNativeTouchContact(pid, p, now, this.eventPerformanceTime(e));
       }
     }
     touchCancel(e) {
@@ -11884,16 +11972,26 @@ function withTimeout(promise, ms, message = "操作超时") {
       if (this.inputStats) this.inputStats.pointerDown++;
       const nativeBridge = this.useNativeTouchInput && e.pointerType === "touch";
       if (nativeBridge) {
-        if (this.nativePointerLinks?.has(e.pointerId)) return;
-        const p = this.findTouchBridge(e.clientX,e.clientY,this.eventPerformanceTime(e),true);
+        const linked=this.nativePointerLinks?.get(e.pointerId),old=this.pointer.get(linked);
+        if(old&&Math.abs(this.eventPerformanceTime(e)-old.downT)<=.08)return;
+        if(linked!=null){this.nativePointerLinks.delete(e.pointerId);if(old?.pointerAlias===e.pointerId)old.pointerAlias=null;}
+        const receipt=this.matchDownReceipt(false,e.pointerId,e.clientX,e.clientY,this.eventPerformanceTime(e));
+        if(receipt?.ended)return;
+        const p = receipt ? this.pointer.get(receipt.touchId) : null;
         if (p) {
+          p.downT=receipt.at;
           p.pointerAlias = e.pointerId;
           (this.nativePointerLinks ||= new Map()).set(e.pointerId,p.id);
           if (this.inputStats) this.inputStats.bridges++;
           return;
         }
+        if(receipt)return;
       } else if (e.cancelable) e.preventDefault();
-      if (this.pointer.has(e.pointerId)) return;
+      const previous=this.pointer.get(e.pointerId);
+      if(previous){
+        if(Math.abs(this.eventPerformanceTime(e)-previous.downT)<=.08)return;
+        this.pointer.delete(e.pointerId);this.releasePointerState(previous,this.eventPerformanceTime(e)-.001);
+      }
       try {
         if (!nativeBridge) this.canvas.setPointerCapture?.(e.pointerId);
       } catch (error) { Diagnostics.warn("Runtime.recoverable", error?.message || String(error)); }
@@ -12007,7 +12105,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       if (this.useNativeTouchInput && e.pointerType === "touch") {
         const pid = this.nativePointerLinks?.get(e.pointerId);
         if (pid != null) {
-          this.releaseNativeTouchContact(pid,this.pointer.get(pid));
+          this.releaseNativeTouchContact(pid,this.pointer.get(pid),undefined,this.eventPerformanceTime(e));
           this.nativePointerLinks.delete(e.pointerId);
           return;
         }
@@ -12024,7 +12122,7 @@ function withTimeout(promise, ms, message = "操作超时") {
         for (const item of this.activeHolds)
           if (item.n.holdPointer === e.pointerId) item.n.releaseAt = now;
         this.pointer.delete(e.pointerId);
-        this.releasePointerState(p);
+        this.releasePointerState(p,this.eventPerformanceTime(e));
       }
       try {
         this.canvas.releasePointerCapture?.(e.pointerId);
@@ -12062,9 +12160,16 @@ function withTimeout(promise, ms, message = "操作超时") {
       return Number.isFinite(value) && value > 0 && value <= now + 50 ? Math.min(value,now) : now;
     }
     eventAudioTime(e) {
-      const delta = (this.eventPerformanceTime(e) - performance.now()) / 1000;
-      if (this.inputStats) this.inputStats.maxDispatchMs = Math.max(this.inputStats.maxDispatchMs,-delta*1000);
-      return this.time + delta * (Number(this.musicRate) || 1);
+      const at=this.eventPerformanceTime(e),now=performance.now();
+      let elapsed=now-at;
+      if (this.inputStats) this.inputStats.maxDispatchMs = Math.max(this.inputStats.maxDispatchMs,elapsed);
+      // A buffered second is not a second of music. Subtract only wall time
+      // during which the transport actually advanced after this input sample.
+      for(const interval of this.inputClockPauses||[])elapsed-=Math.max(0,Math.min(now,interval.end)-Math.max(at,interval.start));
+      return this.time - Math.max(0,elapsed)/1000 * (Number(this.musicRate) || 1);
+    }
+    inputCapturedWhileBuffered(at) {
+      return Number.isFinite(at)&&(this.inputClockPauses||[]).some(interval=>at>=interval.start&&at<interval.end);
     }
     eventPoint(e, out = null) {
       const r = this.inputRect,
@@ -12083,6 +12188,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       p.touchPointer = e.pointerType === "touch";
       p.pointerAlias = null;
       p.downJudged = false;
+      p.downReceipt = null;
       p.downT = now;
       p.downClientX = e.clientX; p.downClientY = e.clientY;
       p.noiseBlocked = false;
@@ -12099,8 +12205,9 @@ function withTimeout(promise, ms, message = "操作超时") {
       p.lastFlickAt = 0;
       return p;
     }
-    releasePointerState(p) {
+    releasePointerState(p, endedAt = performance.now()) {
       if (!p) return;
+      if(p.downReceipt){p.downReceipt.ended=true;p.downReceipt.endAt=Math.min(p.downReceipt.endAt,endedAt);}
       if (p.pointerAlias != null) this.nativePointerLinks?.delete(p.pointerAlias);
       p.pointerAlias = null;
       p.active = false;
@@ -12117,12 +12224,15 @@ function withTimeout(promise, ms, message = "操作超时") {
       this.nativeTouchLiveIds?.clear();
       this.nativeTouchChangedIds?.clear();
       this.nativePointerLinks?.clear();
+      if(this.inputDownReceipts)this.inputDownReceipts.length=0;
+      this.nativeTouchSnapshotTime=0;
+      this.nativeTouchEndedAt?.clear();
     }
     findCandidateMask(
       typeMask, x, y, out = this.candidateScratch, eventAudioTime = NaN,
-      fromX = NaN, fromY = NaN,
+      fromX = NaN, fromY = NaN, allowBuffered = false,
     ) {
-      if(this.streamBuffering)return null;
+      if(this.streamBuffering&&!allowBuffered)return null;
       const blockT=Number.isFinite(eventAudioTime)?eventAudioTime:this.time;
       if(nativeBlockTouchBlocked(this,x,y,blockT))return null;
       if(Number.isFinite(fromX)&&nativeBlockTouchBlocked(this,fromX,fromY,blockT)){fromX=NaN;fromY=NaN;}
@@ -12252,16 +12362,18 @@ function withTimeout(promise, ms, message = "操作超时") {
       return false;
     }
     tryTap(pid, x, y, eventAudioTime = NaN) {
-      if(this.streamBuffering)return;
       const stats = this.inputStats;
       if (stats) stats.edges++;
+      const contact=this.pointer?.get(pid),capturedAt=contact?.downReceipt?.at??contact?.downT,
+        frozenCapture=this.inputCapturedWhileBuffered(capturedAt),historical=this.streamBuffering&&Number.isFinite(capturedAt)&&!frozenCapture;
+      if(frozenCapture||(this.streamBuffering&&!historical)){if(stats)stats.buffered=(stats.buffered||0)+1;return;}
       if(nativeBlockTouchBlocked(this,x,y,Number.isFinite(eventAudioTime)?eventAudioTime:this.time,pid)){if(stats)stats.blocked++;return;}
       if(this.chart.kind === "pjsk")return pjskInput(this,"tap",x,y,eventAudioTime,NaN,NaN,pid);
-      let c = this.findCandidateMask((1 << 1) | (1 << 3), x, y, this.candidateScratch, eventAudioTime);
+      let c = this.findCandidateMask((1 << 1) | (1 << 3), x, y, this.candidateScratch, eventAudioTime,NaN,NaN,historical);
       if (!c) { if (stats) stats.noCandidate++; return; }
       if (c.n.type === 1 && this.tapProtectedByEarlierSpecial(c, x, y)) {
         if (stats) stats.earlyGuard++;
-        c = this.findCandidateMask(1 << 3, x, y, this.candidateScratch, eventAudioTime);
+        c = this.findCandidateMask(1 << 3, x, y, this.candidateScratch, eventAudioTime,NaN,NaN,historical);
         if (!c) return;
       }
       if (stats) stats.accepted++;
@@ -13724,6 +13836,7 @@ function withTimeout(promise, ms, message = "操作超时") {
     finish() {
       if (!this.running || this.referenceFinishing) return;
       this.settleResultJudgements();
+      performanceMonitor.refresh(this);
       const token=++this.transitionToken;
       this.referenceFinishing=true;
       this.running=false;this.paused=true;this.resumePending=false;this.starting=false;
@@ -13929,7 +14042,7 @@ function withTimeout(promise, ms, message = "操作超时") {
       currentRecord = rec;
       suspendLibraryVisuals();
       await nextVisualCommit();
-      await Promise.all([ensureBuiltinMaterialForPlay(),loadSavedOrAdjacentOfficialFont()]);
+      await (playOptions?.preparation || Promise.all([ensureBuiltinMaterialForPlay(),loadSavedOrAdjacentOfficialFont()]));
       assertSongLoad(loadToken);
       const parsedChart = applyRecordChartMetadata(parseChart(rec.parser, rec.chartText, null, rec.meta || {}), rec),
         usePjsk = playOptions?.mode === "pjsk" || (!playOptions?.mode && dualMenuMode === "pjsk"),
@@ -14247,7 +14360,10 @@ function withTimeout(promise, ms, message = "操作超时") {
     if(chart.kind!=='pgr'||!chart.blockAreas?.length)return;
     if(!nativeBlockTexturePromise)nativeBlockTexturePromise=(async()=>{
       const node=$('#phiNativeBlockResources'),spec=JSON.parse(node.textContent||dec.decode(await PhiHostedMedia.bytes(node.dataset.src))),textures={};
-      for(const [name,url] of Object.entries(spec.textures)){const image=new Image(),ready=new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;});image.src=url;await withTimeout(ready,12000,`噪域材质 ${name} 解码超时`);textures[name]=image;}
+      const entries=Object.entries(spec.textures);let next=0;
+      await Promise.all(Array.from({length:Math.min(3,entries.length)},async()=>{
+        while(next<entries.length){const [name,url]=entries[next++],image=new Image(),ready=new Promise((resolve,reject)=>{image.onload=resolve;image.onerror=reject;});image.src=url;await withTimeout(ready,12000,`噪域材质 ${name} 解码超时`);textures[name]=image;}
+      }));
       nativeBlockTextures={...textures,...spec};return nativeBlockTextures;
     })().catch(error=>{nativeBlockTexturePromise=null;throw error;});
     return nativeBlockTexturePromise;

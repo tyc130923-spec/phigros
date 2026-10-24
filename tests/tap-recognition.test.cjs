@@ -73,6 +73,21 @@ test('a missing touchstart still recognizes a short pointer-only press',()=>{
   assert.equal(p.pointer.size,0);assert.equal(p.nativePointerLinks.size,0);
 });
 
+test('an authoritative empty Touch snapshot clears an unpaired pointer whose up event was lost',()=>{
+  const {probe:p,setNow}=playable([{type:1,time:40}]);p.pointerDown(pointer());setNow(1010);
+  p.touchEnd({changedTouches:[touch()],touches:[],timeStamp:1010});
+  assert.equal(p.commits.length,1);assert.equal(p.pointer.size,0);
+});
+
+test('a delayed empty snapshot cannot release a newer physical press',()=>{
+  for(const native of [false,true]){
+    const {probe:p,setNow}=playable([{type:1,time:40.05}]);setNow(1050);p.time=40.05;
+    p.pointerDown(pointer(12,{timeStamp:1050}));if(native)start(p,touch(),1050);setNow(1100);
+    p.touchEnd({changedTouches:[touch()],touches:[],timeStamp:1020});
+    assert.equal(p.pointer.size,1);assert.equal(p.commits.length,1);
+  }
+});
+
 test('native snapshot or move can adopt a fallback contact without scoring twice',()=>{
   for(const mode of ['snapshot','move']){
     const {probe:p,setNow}=playable([{type:1,time:40},{type:1,time:40.04}]);
@@ -204,6 +219,26 @@ test('a 400 ms queued input keeps its capture time and playback-rate conversion'
   const {probe:p}=playable([]);p.musicRate=1.5;
   assert(Math.abs(p.eventAudioTime({timeStamp:600})-39.4)<1e-10);
   assert.equal(p.inputStats.maxDispatchMs,400);
+});
+
+test('queued input time excludes a network pause instead of shifting several seconds early',()=>{
+  const {probe:p,setNow}=playable([]);p.time=40.5;setNow(5000);
+  p.inputClockPauses=[{start:1500,end:4500}];
+  assert(Math.abs(p.eventAudioTime({timeStamp:1400})-39.9)<1e-10);
+  assert.equal(p.eventAudioTime({timeStamp:3000}),40);
+});
+
+test('an on-time press captured before a stall can still judge after its task is delayed',()=>{
+  const {probe:p,setNow}=playable([{type:1,time:39.9}]);p.time=40;setNow(2000);
+  p.inputClockPauses=[{start:1500,end:Infinity}];p.streamBuffering=true;
+  p.pointerDown(pointer(11,{timeStamp:1400}));
+  assert.equal(p.commits.length,1);assert.equal(p.commits[0].j,0);
+});
+
+test('a press captured during a network freeze is tracked but cannot become a future hit after resume',()=>{
+  const {probe:p,setNow}=playable([{type:1,time:40}]);p.time=40.5;setNow(5000);
+  p.inputClockPauses=[{start:1500,end:4500}];p.pointerDown(pointer(11,{timeStamp:3000}));
+  assert.equal(p.commits.length,0);assert.equal(p.inputStats.edges,1);assert.equal(p.inputStats.buffered,1);
 });
 
 test('rAF cannot finalize Miss before an already queued on-time touch gets dispatched',()=>{

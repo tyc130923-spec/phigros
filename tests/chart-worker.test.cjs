@@ -25,3 +25,15 @@ test('wrong decompressed size is rejected instead of silently playing a damaged 
   const result=await decode(fs.readFileSync(item.url),item.usize+1);
   assert.equal(result.ok,false);assert.match(result.error,/长度/);
 });
+
+test('the worker downloads and decodes a chart without sending compressed bytes through the main thread',async()=>{
+  const item=JSON.parse(fs.readFileSync('tests/fixtures/chart-reference-sha256.json'))[0],address='https://example.test/phigros/chart.bin';
+  const notices=[];
+  const result=await new Promise((resolve,reject)=>{
+    const worker=new Worker(path.resolve('tests/helpers/browser-worker.cjs'),{workerData:{script:path.resolve('js/chart-decode-worker.js'),fetchFiles:{[address]:path.resolve(item.url)}}});
+    worker.on('message',m=>{if(m.type==='progress')notices.push(m);else{worker.terminate();resolve(m);}});
+    worker.on('error',reject);worker.postMessage({url:address,offset:0,length:fs.statSync(item.url).size,expectedSize:item.usize});
+  });
+  assert.equal(result.ok,true,result.error);assert.equal(crypto.createHash('sha256').update(result.bytes).digest('hex'),item.sha256);
+  assert(notices.some(x=>x.stage==='decode'));assert(notices.some(x=>x.received===fs.statSync(item.url).size));
+});

@@ -14,10 +14,10 @@ test('render pixel budgets bound Retina and 4K surfaces without changing CSS geo
   }
   assert.equal(policy.renderDpr(800,600,1),1);
 });
-test('fast links need six seconds, marginal links retain headroom, slow links cover the tail deficit',()=>{
+test('startup buffers remain bounded on slow mobile links instead of waiting for most of a song',()=>{
   assert.equal(policy.startupBuffer(160,4,3),6);
-  assert.equal(policy.startupBuffer(160,1.3,3),10);
-  assert.equal(policy.startupBuffer(160,.5,3),90);
+  assert.equal(policy.startupBuffer(160,1.3,3),8);
+  assert.equal(policy.startupBuffer(160,.5,3),12);
   assert.equal(policy.startupBuffer(4,.5,3),4);
   assert.equal(policy.startupBuffer(160,20,.1),8,'one early burst must not short-circuit the safety margin');
 });

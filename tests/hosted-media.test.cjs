@@ -42,9 +42,9 @@ test('returning to the library aborts a pending wait without hanging',async()=>{
   const {PhiHostedMedia:media}=runtime();const stream=new media.Stream(new FakeAudio(0),{url:'./music.m4a',duration:160});
   const pending=stream.wait();stream.destroy();await assert.rejects(pending,{name:'AbortError'});
 });
-test('under-speed links require enough headroom to cover their measured deficit',()=>{
+test('under-speed links use bounded startup headroom instead of demanding most of a song',()=>{
   const {PhiHostedMedia:media}=runtime();
-  assert.equal(media.bufferTarget(160,.5,8),90);
+  assert.equal(media.bufferTarget(160,.5,8),12);
   assert.equal(media.bufferTarget(160,3,8),6);
   assert.equal(media.bufferTarget(5,.5,8),5);
 });
@@ -84,6 +84,15 @@ test('chart loading transfers a copy and terminates its worker after receiving t
   assert.notEqual(transfer,packed);assert.deepEqual([...packed],[1,2,3]);assert.deepEqual([...result],[123,125]);assert.equal(terminated,true);
 });
 
+test('the chart worker owns its download, reports progress, and terminates on cancellation',async()=>{
+  let request,terminated=false;const progress=[];
+  class DownloadWorker{postMessage(data){request=data;this.onmessage({data:{type:'progress',stage:'download',received:12,total:30}});}terminate(){terminated=true;}}
+  const {PhiHostedMedia:media}=runtime({Worker:DownloadWorker}),controller=new AbortController();
+  const pending=media.loadChart({url:'./chart.bin',offset:2,byteLength:30,usize:100},{signal:controller.signal,onProgress:(done,total)=>progress.push([done,total])});
+  assert.equal(request.url,'https://example.test/phigros/chart.bin');assert.equal(request.bytes,undefined);
+  assert.deepEqual(progress,[[12,30]]);controller.abort();await assert.rejects(pending,{name:'AbortError'});assert(terminated);
+});
+
 test('a caller can cancel a recovery wait without destroying the stream',async()=>{
   const {PhiHostedMedia:media}=runtime(),stream=new media.Stream(new FakeAudio(0),{url:'./music.m4a',duration:160});
   const controller=new AbortController(),pending=stream.wait(12,{signal:controller.signal});
@@ -95,7 +104,13 @@ test('a fast first chunk followed by a slow link lowers the measured download ra
   const audio=new FakeAudio(4),stream=new media.Stream(audio,{url:'./music.m4a',duration:160});
   now=100;stream.snapshot(12);now=10000;
   const state=stream.snapshot(12);
-  assert.equal(state.rate,.4);assert(state.target>90);stream.destroy();
+  assert.equal(state.rate,.4);assert.equal(state.target,12);stream.destroy();
+});
+
+test('a mobile preload plateau can begin with six playable seconds instead of waiting indefinitely',async()=>{
+  let now=0;const {PhiHostedMedia:media}=runtime({performance:{now:()=>now}}),audio=new FakeAudio(6.5),stream=new media.Stream(audio,{url:'./music.m4a',duration:160});
+  const pending=stream.wait();now=7000;audio.dispatchEvent(new Event('progress'));
+  await pending;assert(stream.initialReady);assert(audio.ahead<12);stream.destroy();
 });
 test('an artwork deadline aborts its fetch instead of blocking song startup',async()=>{
   let aborted=false;

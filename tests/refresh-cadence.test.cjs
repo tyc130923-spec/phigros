@@ -44,6 +44,18 @@ test('the FPS monitor includes a one-second stall in its frame-time percentiles'
   const report=monitor.snapshot();assert.equal(report.samples,1);assert.equal(report.p99,1500);assert.equal(report.max,1500);
 });
 
+test('opening or pausing diagnostics can refresh the latest input count without fabricating an FPS sample',()=>{
+  const context=vm.createContext({FPS_MINI_PAINT_MS:750,PHI_VERSIONS:{runtime:'test'},Engine:{_hitMixer:null},highRefreshController:{measuredHz:()=>120},performance:{now:()=>20}});
+  vm.runInContext(source.slice(source.indexOf('  class PerformanceMonitor {'),source.indexOf('  const performanceMonitor ='))+'\nglobalThis.Monitor=PerformanceMonitor;',context);
+  const monitor=new context.Monitor(),view={textContent:''},engine={inputStats:{edges:2}};
+  monitor.el=view;monitor.visible=true;
+  monitor.frame(engine,1000/120,1,2,0);const before=monitor.snapshot();
+  engine.inputStats.edges=3;monitor.frame(engine,0,1,2,10);
+  assert.match(view.textContent,/点按接收 2/,'ordinary paints remain throttled');
+  monitor.refresh(engine);assert.match(view.textContent,/点按接收 3/);
+  assert.equal(monitor.snapshot().samples,before.samples);assert.equal(monitor.snapshot().p99,before.p99);
+});
+
 test('gameplay follows every rAF without a timer gate and never schedules duplicate loops',()=>{
   const callbacks=[];
   const {probe:p,context}=fixture({requestAnimationFrame:cb=>{callbacks.push(cb);return callbacks.length;}});

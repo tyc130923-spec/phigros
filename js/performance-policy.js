@@ -10,10 +10,9 @@
   function startupBuffer(duration,rate,elapsed,minimum=6){
     const remaining=Math.max(0,Number(duration)||0),floor=Math.min(remaining,minimum);
     if(elapsed<1.5||!(rate>0))return Math.min(remaining,Math.max(floor,8));
-    // Match download time to the unbuffered tail instead of demanding a fixed
-    // 12 seconds even on fast links; retain deficit coverage on slow links.
-    if(rate<1.15)return Math.min(remaining,Math.max(floor,remaining*Math.max(0,1-rate)+10));
-    return Math.min(remaining,rate>=2?floor:Math.max(floor,10));
+    // Paused media may stop preloading on mobile. Never demand half a song
+    // before allowing playback; real under-speed links use synchronized stalls.
+    return Math.min(remaining,rate>=2?floor:rate>=1.15?Math.max(floor,8):Math.max(floor,12));
   }
   class ResourceCache{
     constructor(maxBytes,maxEntries){this.maxBytes=maxBytes;this.maxEntries=maxEntries;this.entries=new Map();this.weights=new Map();this.bytes=0;}

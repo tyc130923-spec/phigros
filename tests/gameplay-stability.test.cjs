@@ -13,6 +13,18 @@ test('a transient waiting event with playable audio never interrupts input',asyn
   assert.equal(probe.audio.playCalls,0);assert.equal(probe.streamBuffering,false);
 });
 
+test('an unplayable waiting event freezes immediately and a short recovery preserves all fingers',async()=>{
+  const wait=deferred(),{probe,context,setNow}=fixture({sleep:()=>wait.promise});
+  probe.pointer.set(-2,{id:-2,nativeTouch:true,active:true,x:100,y:200,lastT:1000,startT:1000});
+  probe.streamSession={wait(){throw Error('short waiting must not demand another preload');}};
+  const pending=probe.recoverStreamBuffer();
+  assert.equal(probe.streamBuffering,true,'judgement cannot advance during the debounce');
+  assert.equal(probe.cancelledLoops,1);assert.equal(probe.pointer.size,1);
+  probe.audio.readyState=3;probe.audio.ahead=1;setNow(1050);wait.resolve();await pending;
+  assert.equal(probe.streamBuffering,false);assert.equal(probe.pointer.get(-2).active,true);
+  assert.equal(probe.pointer.get(-2).lastT,1050);assert.equal(probe.audio.playCalls,0);assert.equal(probe.scheduledLoops,1);
+});
+
 test('two held fingers survive real buffering; movement and a real lift remain independent',async()=>{
   const {probe,node,setNow}=fixture(),ready=deferred();
   probe.streamSession={wait:()=>ready.promise};

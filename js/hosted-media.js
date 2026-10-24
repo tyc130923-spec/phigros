@@ -93,25 +93,36 @@
     }
     return 0;
   }
-  function decodeChart(packed,expectedSize){
+  function chartTask(data,transfer=[],{onProgress,signal}={}){
     return new Promise((resolve,reject)=>{
-      let worker,timer;
-      const finish=(error,bytes)=>{clearTimeout(timer);worker?.terminate();error?reject(error):resolve(bytes);};
+      let worker,timer,settled=false;
+      const finish=(error,bytes)=>{if(settled)return;settled=true;clearTimeout(timer);signal?.removeEventListener('abort',abort);worker?.terminate();error?reject(error):resolve(bytes);};
+      const abort=()=>finish(new DOMException('谱面加载已取消','AbortError'));
+      const renew=ms=>{clearTimeout(timer);timer=setTimeout(()=>finish(Error('谱面下载或后台解码超时')),ms);};
+      if(signal?.aborted)return abort();
       try{
-        worker=new Worker(url('./js/chart-decode-worker.js'));
-        worker.onmessage=({data})=>finish(data.ok?null:Error(data.error),data.bytes);
+        worker=new Worker(url('./js/chart-decode-worker.js?v=4.0.1.2-input-8'));
+        worker.onmessage=({data})=>{
+          if(settled)return;
+          if(data.type==='progress'){renew(data.stage==='decode'?30000:45000);onProgress?.(data.received,data.total,data.stage);return;}
+          finish(data.ok?null:Error(data.error),data.bytes);
+        };
         worker.onerror=()=>finish(Object.assign(Error('谱面后台线程不可用'),{name:'WorkerUnavailableError'}));
-        timer=setTimeout(()=>finish(Error('谱面后台解码超时')),30000);
-        // Transfer a copy: the compressed download cache must remain reusable.
-        const bytes=packed.slice();worker.postMessage({bytes,expectedSize},[bytes.buffer]);
+        signal?.addEventListener('abort',abort,{once:true});renew(data.url?45000:30000);
+        worker.postMessage(data,transfer);
       }catch(error){finish(Object.assign(Error(error?.message||'谱面后台线程不可用'),{name:'WorkerUnavailableError'}));}
     });
+  }
+  function decodeChart(packed,expectedSize){
+    const bytes=packed.slice();return chartTask({bytes,expectedSize},[bytes.buffer]);
+  }
+  function loadChart(spec,options={}){
+    return chartTask({url:url(spec.url),offset:Number(spec.offset)||0,length:Number(spec.byteLength),expectedSize:Number(spec.usize)||0},[],options);
   }
   function bufferTarget(duration, downloadRate, elapsed, minimum = 6) {
     if(globalThis.PhiPerformance)return PhiPerformance.startupBuffer(duration,downloadRate,elapsed,minimum);
     if (elapsed < 1.2 || !(downloadRate > 0)) return Math.min(duration, minimum);
-    if (downloadRate < 1.1) return Math.min(duration, Math.max(minimum, duration * Math.max(0, 1 - downloadRate) + 10));
-    return Math.min(duration, downloadRate >= 2 ? minimum : Math.max(minimum, 12));
+    return Math.min(duration, downloadRate >= 2 ? minimum : Math.max(minimum,12));
   }
   class Stream {
     constructor(audio, spec, onProgress) {
@@ -153,7 +164,8 @@
           const state = this.snapshot(minimum);
           if (state.ahead > lastAhead + .1) { lastProgress = performance.now(); lastAhead = state.ahead; }
           this.onProgress?.(state);
-          if (state.ready) {this.initialReady=true;return finish();}
+          const preloadPlateau=audio.readyState>=3&&!audio.seeking&&state.ahead>=6&&performance.now()-lastProgress>2000;
+          if (state.ready||preloadPlateau) {this.initialReady=true;return finish();}
           if (performance.now() - lastProgress > 45000) finish(Error('网络暂时没有响应，请返回选歌重试'));
         };
         for (const event of ['progress', 'loadedmetadata', 'canplay', 'error']) audio.addEventListener(event, check);
@@ -164,7 +176,7 @@
     }
     destroy() { this.controller.abort(); }
   }
-  globalThis.PhiHostedMedia = Object.freeze({ manifest, url, bytes, artwork, bufferedAhead, bufferTarget, decodeChart, Stream });
+  globalThis.PhiHostedMedia = Object.freeze({ manifest, url, bytes, artwork, bufferedAhead, bufferTarget, decodeChart, loadChart, Stream });
   if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}), { once: true });
   }
